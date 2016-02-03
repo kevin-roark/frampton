@@ -26,8 +26,8 @@ videoIDs.forEach(function(id) {
   segments.push(segment);
 });
 
-var leaderSegment = new frampton.Segment({
-  childSegments: segments,
+var leaderSegment = new frampton.SequencedSegment({
+  segments: segments,
   loop: true
 });
 
