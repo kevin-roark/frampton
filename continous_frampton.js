@@ -10,8 +10,8 @@ var currentIDChoices = [];
 
 var segments = [];
 videoIDs.forEach(function(id) {
-  var segment = new frampton.Segment({
-    videoID: id,
+  var segment = new frampton.VideoSegment({
+    id: id,
     onComplete: function() {
       // refill choices if necessary
       if (currentIDChoices.length === 0) {
@@ -19,7 +19,7 @@ videoIDs.forEach(function(id) {
       }
 
       var newID = currentIDChoices.shift();
-      segment.setVideoID(newID);
+      segment.setMediaID(newID);
     }
   });
 
