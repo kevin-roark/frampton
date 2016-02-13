@@ -1,12 +1,11 @@
 
-import { Segment } from './segment';
+var Segment = require('./segment');
 
-export class VideoSegment extends Segment {
+module.exports = class VideoSegment extends Segment {
   constructor(options) {
-    this.segmentType = 'video';
-
     super(options);
 
+    this.segmentType = 'video';
     this.mediaID = options.mediaID;
   }
-}
+};

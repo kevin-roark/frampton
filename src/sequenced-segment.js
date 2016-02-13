@@ -1,12 +1,11 @@
 
-import { Segment } from './segment';
+var Segment = require('./segment');
 
-export class SequencedSegment extends Segment {
+module.exports = class SequencedSegment extends Segment {
   constructor(options) {
-    this.segmentType = 'sequence';
-
     super(options);
 
+    this.segmentType = 'sequence';
     this.segments = options.segments || [];
   }
-}
+};

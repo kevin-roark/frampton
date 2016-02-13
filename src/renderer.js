@@ -1,11 +1,12 @@
 
-import { SequencedSegment } from './sequenced-segment';
+var SequencedSegment = require('./sequenced-segment');
 
-export class Renderer {
-  constructor({segment, mediaFilepath, outputFilepath}) {
-    this.mediaFilepath = mediaFilepath;
-    this.outputFilepath = outputFilepath !== undefined ? outputFilepath : './out/';
+module.exports = class Renderer {
+  constructor(options) {
+    this.mediaFilepath = options.mediaFilepath;
+    this.outputFilepath = options.outputFilepath !== undefined ? options.outputFilepath : './out/';
 
+    let segment = options.segment;
     switch (segment.segmentType) {
       case 'video':
         this.segment = new SequencedSegment({segments: [segment], loop: segment.loop});
@@ -22,4 +23,4 @@ export class Renderer {
   render() {
 
   }
-}
+};

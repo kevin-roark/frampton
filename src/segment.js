@@ -1,7 +1,7 @@
 
-export class Segment {
-  constructor({loop, onComplete}) {
-    this.loop = loop !== undefined ? loop : false;
-    this.onComplete = onComplete;
+module.exports = class Segment {
+  constructor(options) {
+    this.loop = options.loop !== undefined ? options.loop : false;
+    this.onComplete = options.onComplete;
   }
-}
+};

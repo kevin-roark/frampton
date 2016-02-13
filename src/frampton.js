@@ -1,10 +1,12 @@
 
-export * from './segment';
-export * from './video-segment';
-export * from './sequenced-segment';
+module.exports = {
+  Segment: require('./segment'),
+  VideoSegment: require('./video-segment'),
+  SequencedSegment: require('./sequenced-segment'),
 
-export * from './renderer';
-export * from './video-renderer';
-export * from './web-renderer';
+  Renderer: require('./renderer'),
+  VideoRenderer: require('./video-renderer'),
+  WebRenderer: require('./web-renderer'),
 
-export * from './util';
+  util: require('./util')
+};

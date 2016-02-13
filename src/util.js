@@ -1,23 +1,29 @@
 
-import {readdirSync, statSync} from 'fs';
-import {join as pathJoin, extname} from 'path';
+var fs = require('fs');
+var fsPath = require('path');
 
-export function videoIDsInPath(path) {
+module.exports = {
+  videoIDsInPath: videoIDsInPath,
+  choice: choice,
+  shuffle: shuffle
+};
+
+function videoIDsInPath(path) {
   if (!path || path.length === 0) {
     return [];
   }
 
   var ids = [];
 
-  readdirSync.readdirSync(path).forEach(function(file) {
-      var filepath = pathJoin(path, file);
+  fs.readdirSync(path).forEach(function(file) {
+      var filepath = fsPath.join(path, file);
 
-      var stat = statSync(filepath);
+      var stat = fs.statSync(filepath);
       if (stat && stat.isDirectory()) {
           ids = ids.concat(videoIDsInPath(filepath));
       }
       else {
-        if (extname(filepath) === '.mp4') {
+        if (fsPath.extname(filepath) === '.mp4') {
           ids.push(file);
         }
       }
@@ -26,12 +32,12 @@ export function videoIDsInPath(path) {
   return ids;
 }
 
-export function choice(arr) {
+function choice(arr) {
   var i = Math.floor(Math.random() * arr.length);
   return arr[i];
 }
 
-export function shuffle(arr) {
+function shuffle(arr) {
   var newArray = new Array(arr.length);
   for (var i = 0; i < arr.length; i++) {
     newArray[i] = arr[i];

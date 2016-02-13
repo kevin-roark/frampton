@@ -1,10 +1,10 @@
 
-import { Renderer } from './renderer';
+var Renderer = require('./renderer');
 
-export class VideoRenderer extends Renderer {
+module.exports = class VideoRenderer extends Renderer {
   constructor(options) {
     super(options);
 
 
   }
-}
+};

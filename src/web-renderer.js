@@ -1,9 +1,9 @@
 
-import { Renderer } from './renderer';
-import {ncp} from 'ncp';
-import {writeFileSync} from 'fs';
+var Renderer = require('./renderer');
+var ncp = require('ncp').ncp;
+var writeFileSync = require('fs').writeFileSync;
 
-export class WebRenderer extends Renderer {
+module.exports = class WebRenderer extends Renderer {
   constructor(options) {
     super(options);
   }
@@ -24,4 +24,4 @@ export class WebRenderer extends Renderer {
       writeFileSync(this.outputFilepath + '/js/main.js', mainJS);
     });
   }
-}
+};
