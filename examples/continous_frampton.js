@@ -1,24 +1,23 @@
 
 var frampton = require('../src/frampton');
 
-var mediaFilepath = './media/';
+var mediaConfig = require('./media_config_1.json');
 
-var videoIDs = frampton.util.shuffle(frampton.util.videoIDsInPath(mediaFilepath));
-
-var currentIDChoices = [];
+var videos = frampton.util.shuffle(mediaConfig.videos);
+var currentVideoChoices = [];
 
 var segments = [];
-videoIDs.forEach(function(id) {
+videos.forEach(function(video) {
   var segment = new frampton.VideoSegment({
-    mediaID: id,
+    mediaID: video.id,
     onComplete: function() {
       // refill choices if necessary
-      if (currentIDChoices.length === 0) {
-        currentIDChoices = frampton.util.shuffle(videoIDs);
+      if (currentVideoChoices.length === 0) {
+        currentVideoChoices = frampton.util.shuffle(videos);
       }
 
-      var newID = currentIDChoices.shift();
-      segment.setMediaID(newID);
+      var newVideo = currentVideoChoices.shift();
+      segment.setMediaID(newVideo.id);
     }
   });
 
@@ -32,7 +31,7 @@ var leaderSegment = new frampton.SequencedSegment({
 
 var renderer = new frampton.WebRenderer({
   segment: leaderSegment,
-  mediaFilepath: mediaFilepath
+  mediaFilepath: mediaConfig.path
 });
 
 renderer.render();
