@@ -1,6 +1,6 @@
 
-var fs = require('fs');
-var fsPath = require('path');
+import {readdirSync, statSync} from 'fs';
+import {join as pathJoin, extname} from 'path';
 
 module.exports.videoIDsInPath = function _videoIDsInPath(path) {
   if (!path || path.length === 0) {
@@ -9,15 +9,15 @@ module.exports.videoIDsInPath = function _videoIDsInPath(path) {
 
   var ids = [];
 
-  fs.readdirSync(path).forEach(function(file) {
-      var filepath = fsPath.join(path, file);
+  readdirSync.readdirSync(path).forEach(function(file) {
+      var filepath = pathJoin(path, file);
 
-      var stat = fs.statSync(filepath);
+      var stat = statSync(filepath);
       if (stat && stat.isDirectory()) {
           ids = ids.concat(_videoIDsInPath(filepath));
       }
       else {
-        if (fsPath.extname(filepath) === '.mp4') {
+        if (extname(filepath) === '.mp4') {
           ids.push(file);
         }
       }
