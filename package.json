@@ -1,0 +1,19 @@
+{
+  "name": "frampton",
+  "version": "0.0.0",
+  "private": true,
+  "description": "programmatic video generation",
+  "directories": {
+    "example": "examples"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kevin-roark/frampton.git"
+  },
+  "author": "kevin roark",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kevin-roark/frampton/issues"
+  },
+  "homepage": "https://github.com/kevin-roark/frampton"
+}

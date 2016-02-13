@@ -1,10 +1,9 @@
 
-var kt = require('kutility');
-var frampton = require('frampton');
+var frampton = require('../src/frampton');
 
 var mediaFilepath = './media/';
 
-var videoIDs = kt.shuffle(frampton.util.videoIDsInPath(mediaFilepath));
+var videoIDs = frampton.util.shuffle(frampton.util.videoIDsInPath(mediaFilepath));
 
 var currentIDChoices = [];
 
@@ -15,7 +14,7 @@ videoIDs.forEach(function(id) {
     onComplete: function() {
       // refill choices if necessary
       if (currentIDChoices.length === 0) {
-        currentIDChoices = kt.shuffle(videoIDs);
+        currentIDChoices = frampton.util.shuffle(videoIDs);
       }
 
       var newID = currentIDChoices.shift();
