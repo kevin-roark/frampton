@@ -5,6 +5,8 @@ module.exports = {
   SequencedSegment: require('./sequenced-segment'),
 
   Renderer: require('./renderer'),
+  VideoRenderer: require('./video-renderer'),
+  WebRenderer: require('./web-renderer'),
 
   util: require('./util')
 };

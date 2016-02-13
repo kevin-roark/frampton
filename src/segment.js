@@ -1,6 +1,7 @@
 
 export class Segment {
-  constructor(options) {
-
+  constructor({loop, onComplete}) {
+    this.loop = loop !== undefined ? loop : false;
+    this.onComplete = onComplete;
   }
 }

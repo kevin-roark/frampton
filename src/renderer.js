@@ -1,6 +1,11 @@
 
 export class Renderer {
-  constructor(options) {
+  constructor({segment, mediaFilepath}) {
+    this.segment = segment;
+    this.mediaFilepath = mediaFilepath;
+  }
+
+  render() {
 
   }
 }

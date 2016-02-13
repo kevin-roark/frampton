@@ -11,7 +11,7 @@ var currentIDChoices = [];
 var segments = [];
 videoIDs.forEach(function(id) {
   var segment = new frampton.VideoSegment({
-    id: id,
+    mediaID: id,
     onComplete: function() {
       // refill choices if necessary
       if (currentIDChoices.length === 0) {
@@ -31,7 +31,7 @@ var leaderSegment = new frampton.SequencedSegment({
   loop: true
 });
 
-var renderer = new frampton.Renderer({
+var renderer = new frampton.WebRenderer({
   segment: leaderSegment,
   mediaFilepath: mediaFilepath
 });
