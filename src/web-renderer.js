@@ -39,7 +39,6 @@ module.exports = class WebRenderer extends Renderer {
 
   renderSequencedSegment(sequenceSegment) {
     var sequenceIndex = 0;
-    console.log('rendering sequenced segment');
 
     var renderNextSequence = () => {
       var segment = sequenceSegment.getSegment(sequenceIndex);
@@ -73,8 +72,6 @@ module.exports = class WebRenderer extends Renderer {
   }
 
   renderVideoSegment(segment) {
-    console.log('rendering video: ' + segment.filename);
-
     var video = document.createElement('video');
     video.preload = true;
     video.className = 'frampton-video';
