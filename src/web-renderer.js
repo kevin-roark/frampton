@@ -82,10 +82,13 @@ module.exports = class WebRenderer extends Renderer {
       }
     };
 
+    video.style.opacity = 0;
+    this.domContainer.appendChild(video);
+
     setTimeout(() => {
       video.play();
-      this.domContainer.appendChild(video);
-    }, offset);
+      video.style.opacity = 1;
+    }, offset - 5); // -5 to offset Jank
   }
 
   scheduleSegmentRender(segment, delay) {
