@@ -1,8 +1,4 @@
 
-var frampton = require('../src/frampton');
-
-var mediaConfig = require('./media_config_1.json');
-
 var videos = frampton.util.shuffle(mediaConfig.videos);
 var currentVideoChoices = [];
 

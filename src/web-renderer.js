@@ -7,6 +7,6 @@ module.exports = class WebRenderer extends Renderer {
   }
 
   render() {
-
+    console.log('frampton is starting now...');
   }
 };

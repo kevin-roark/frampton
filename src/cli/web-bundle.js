@@ -2,29 +2,52 @@
 
 var ncp = require('ncp').ncp;
 var fs = require('fs');
+var browserify = require('browserify');
 
 var args = process.argv.slice(2);
 if (args.length < 1) {
   console.log('need a score...');
   return;
 }
+if (args.length < 2) {
+  console.log('need a media config file...');
+  return;
+}
 
 var scoreFilePath = args[0];
-var outputFilepath = args.length > 1 ? args[1] : './out';
+var mediaConfigFilepath = args[1];
+var outputFilepath = args.length > 2 ? args[2] : './out';
 
 var score = fs.readFileSync(scoreFilePath).toString();
+
+// TODO: should just be able to require('frampton')
 var mainJS = `
   (function() {
+    var frampton = require('../../src/frampton');
+    var mediaConfig = require('./media_config.json');
+
     ${score}
   })();\n
 `;
 
+// copy web template
 ncp(__dirname + '/../web-template', outputFilepath, (err) => {
   if (err) {
     return console.error(err);
   }
 
-  fs.writeFileSync(outputFilepath + '/js/main.js', mainJS);
+  // copy media config
+  fs.createReadStream(mediaConfigFilepath).pipe(fs.createWriteStream(outputFilepath + '/js/media_config.json'));
 
-  // TODO: bundle with browserify
+  // copy score code
+  var mainFilename = outputFilepath + '/js/main.js';
+  fs.writeFileSync(mainFilename, mainJS);
+
+  // bundle it up
+  // TODO: run the whole thing through uglifyjs
+  browserify(mainFilename)
+    .transform('babelify', {presets: ['es2015']})
+    //.transform({global: true}, 'uglifyify')
+    .bundle()
+    .pipe(fs.createWriteStream(outputFilepath + '/js/build.js'));
 });
