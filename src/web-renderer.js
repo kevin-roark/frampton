@@ -39,16 +39,18 @@ module.exports = class WebRenderer extends Renderer {
 
   renderSequencedSegment(sequenceSegment) {
     var sequenceIndex = 0;
-    renderNextSequence();
+    console.log('rendering sequenced segment');
 
     var renderNextSequence = () => {
       var segment = sequenceSegment.getSegment(sequenceIndex);
 
       var segmentOnComplete = segment.onComplete;
       segment.onComplete = () => {
+        // call the original completion and reset that bad boy
         if (segmentOnComplete) {
           segmentOnComplete();
         }
+        segment.onComplete = segmentOnComplete;
 
         sequenceIndex += 1;
         if (sequenceIndex < sequenceSegment.segmentCount()) {
@@ -66,9 +68,13 @@ module.exports = class WebRenderer extends Renderer {
 
       this.renderSegment(segment);
     };
+
+    renderNextSequence();
   }
 
   renderVideoSegment(segment) {
+    console.log('rendering video: ' + segment.filename);
+
     var video = document.createElement('video');
     video.preload = true;
     video.className = 'frampton-video';

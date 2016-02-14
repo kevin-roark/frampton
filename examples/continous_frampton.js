@@ -13,7 +13,7 @@ videos.forEach(function(video) {
       }
 
       var newVideo = currentVideoChoices.shift();
-      segment.setMediaID(newVideo.filename);
+      segment.setFilename(newVideo.filename);
     }
   });
 
