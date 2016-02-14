@@ -11,9 +11,11 @@ module.exports = class Renderer {
       case 'video':
         this.segment = new SequencedSegment({segments: [segment], loop: segment.loop});
         break;
+
       case 'sequence':
         this.segment = segment;
         break;
+
       default:
         console.log('broken home.... uknown segment type');
         break;

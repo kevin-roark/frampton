@@ -8,4 +8,12 @@ module.exports = class SequencedSegment extends Segment {
     this.segmentType = 'sequence';
     this.segments = options.segments || [];
   }
+
+  getSegment(index) {
+    return this.segments[index];
+  }
+
+  segmentCount() {
+    return this.segments.length;
+  }
 };

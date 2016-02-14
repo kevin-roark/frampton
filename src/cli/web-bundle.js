@@ -30,24 +30,34 @@ var mainJS = `
   })();\n
 `;
 
+var mediaConfig = require(__dirname + '/../../' + mediaConfigFilepath);
+
 // copy web template
 ncp(__dirname + '/../web-template', outputFilepath, (err) => {
   if (err) {
     return console.error(err);
   }
 
-  // copy media config
-  fs.createReadStream(mediaConfigFilepath).pipe(fs.createWriteStream(outputFilepath + '/js/media_config.json'));
+  // copy media
+  ncp(mediaConfig.path, outputFilepath + '/media', (err) => {
+    if (err) {
+      return console.error(err);
+    }
 
-  // copy score code
-  var mainFilename = outputFilepath + '/js/main.js';
-  fs.writeFileSync(mainFilename, mainJS);
+    // modify and write config
+    mediaConfig.path = 'media/';
+    fs.writeFileSync(outputFilepath + '/js/media_config.json', JSON.stringify(mediaConfig));
 
-  // bundle it up
-  // TODO: run the whole thing through uglifyjs
-  browserify(mainFilename)
-    .transform('babelify', {presets: ['es2015']})
-    //.transform({global: true}, 'uglifyify')
-    .bundle()
-    .pipe(fs.createWriteStream(outputFilepath + '/js/build.js'));
+    // copy score code
+    var mainFilename = outputFilepath + '/js/main.js';
+    fs.writeFileSync(mainFilename, mainJS);
+
+    // bundle it up
+    // TODO: run the whole thing through uglifyjs
+    browserify(mainFilename)
+      .transform('babelify', {presets: ['es2015']})
+      //.transform({global: true}, 'uglifyify')
+      .bundle()
+      .pipe(fs.createWriteStream(outputFilepath + '/js/build.js'));
+  });
 });

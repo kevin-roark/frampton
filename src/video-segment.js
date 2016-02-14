@@ -6,6 +6,11 @@ module.exports = class VideoSegment extends Segment {
     super(options);
 
     this.segmentType = 'video';
-    this.mediaID = options.mediaID;
+    this.filename = options.filename;
+    this.z = options.z || 0;
+  }
+
+  extensionlessName() {
+    return this.filename.substring(0, this.filename.indexOf('.'));
   }
 };

@@ -5,7 +5,7 @@ var currentVideoChoices = [];
 var segments = [];
 videos.forEach(function(video) {
   var segment = new frampton.VideoSegment({
-    mediaID: video.id,
+    filename: video.filename,
     onComplete: function() {
       // refill choices if necessary
       if (currentVideoChoices.length === 0) {
@@ -13,7 +13,7 @@ videos.forEach(function(video) {
       }
 
       var newVideo = currentVideoChoices.shift();
-      segment.setMediaID(newVideo.id);
+      segment.setMediaID(newVideo.filename);
     }
   });
 

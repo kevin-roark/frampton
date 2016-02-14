@@ -15,7 +15,7 @@ var config = {
 var files = filesInPath(config.path);
 files.forEach(function(file) {
   if (path.extname(file) === '.mp4') {
-    config.videos.push({"id": file});
+    config.videos.push({"filename": file});
   }
 });
 
