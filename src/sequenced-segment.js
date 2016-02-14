@@ -16,4 +16,12 @@ module.exports = class SequencedSegment extends Segment {
   segmentCount() {
     return this.segments.length;
   }
+
+  totalDuration() {
+    var duration = 0;
+    for (var i = 0; i < this.segments.length; i++) {
+      duration += this.segments[i].duration;
+    }
+    return duration;
+  }
 };

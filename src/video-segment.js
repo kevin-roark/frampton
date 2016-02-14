@@ -7,6 +7,8 @@ module.exports = class VideoSegment extends Segment {
 
     this.segmentType = 'video';
     this.filename = options.filename;
+    this.duration = options.duration || 0;
+    this.loop = options.loop !== undefined ? options.loop : false;
     this.z = options.z || 0;
   }
 
@@ -16,5 +18,9 @@ module.exports = class VideoSegment extends Segment {
 
   setFilename(filename) {
     this.filename = filename;
+  }
+
+  msDuration() {
+    return this.duration * 1000;
   }
 };

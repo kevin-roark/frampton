@@ -6,78 +6,66 @@ module.exports = class WebRenderer extends Renderer {
     super(options);
 
     this.domContainer = document.body;
+    this.timeToLoadVideo = options.timeToLoadVideo || 1000;
+    this.scheduledRenders = [];
+
+    console.log('frampton is starting now...');
+
+    this.startTime = window.performance.now();
+    this.update(); // get the loop going
   }
 
   update() {
     window.requestAnimationFrame(this.update.bind(this));
 
+    var offsetFromStart = window.performance.now() - this.startTime;
 
-  }
-
-  render() {
-    console.log('frampton is starting now...');
-
-    this.update(); // get the loop going
-    this.renderSegment(this.segment); // render the primary segment
-  }
-
-  renderSegment(segment) {
-    switch (segment.segmentType) {
-      case 'sequence':
-        this.renderSequencedSegment(segment);
-        break;
-
-      case 'video':
-        this.renderVideoSegment(segment);
-        break;
-
-      default:
-        console.log('unhandled sequence type: ' + segment.segmentType);
-        break;
+    for (var i = this.scheduledRenders.length - 1; i >= 0; i--) {
+      var scheduledRender = this.scheduledRenders[i];
+      var timeUntilStart = scheduledRender.time - offsetFromStart;
+      if (timeUntilStart < this.timeToLoadVideo) {
+        // start to render, and pop it off
+        this.renderSegment(scheduledRender.segment, {offset: Math.max(timeUntilStart, 0)});
+        this.scheduledRenders.splice(i, 1);
+      }
     }
   }
 
   renderSequencedSegment(sequenceSegment) {
-    var sequenceIndex = 0;
+    var offset = 0;
 
-    var renderNextSequence = () => {
-      var segment = sequenceSegment.getSegment(sequenceIndex);
+    sequenceSegment.segments.forEach((segment, idx) => {
+      this.scheduleSegmentRender(segment, offset);
+      offset += segment.msDuration();
 
-      var segmentOnComplete = segment.onComplete;
-      segment.onComplete = () => {
-        // call the original completion and reset that bad boy
-        if (segmentOnComplete) {
-          segmentOnComplete();
-        }
-        segment.onComplete = segmentOnComplete;
-
-        sequenceIndex += 1;
-        if (sequenceIndex < sequenceSegment.segmentCount()) {
-          renderNextSequence();
-        }
-        else {
-          if (sequenceSegment.loop) {
-            this.renderSequencedSegment(sequenceSegment);
+      // last item needs a cleanerupper
+      if (idx === sequenceSegment.segmentCount() - 1) {
+        var onComplete = segment.onComplete;
+        segment.onComplete = () => {
+          // call and reset the original
+          if (onComplete) {
+            onComplete();
           }
-          else {
-            sequenceSegment.cleanup();
-          }
-        }
-      };
+          segment.onComplete = onComplete;
 
-      this.renderSegment(segment);
-    };
-
-    renderNextSequence();
+          // clean up the sequence
+          sequenceSegment.cleanup();
+        };
+      }
+    });
   }
 
-  renderVideoSegment(segment) {
+  renderVideoSegment(segment, options) {
+    if (!options) options = {};
+
+    var offset = options.offset || 0;
+
     var video = document.createElement('video');
     video.preload = true;
     video.className = 'frampton-video';
 
     var filename = video.canPlayType('video/mp4').length > 0 ? segment.filename : segment.extensionlessName() + '.webm';
-    video.src = this.mediaFilepath + filename;
+    video.src = this.mediaConfig.path + filename;
 
     video.style.zIndex = segment.z;
 
@@ -94,7 +82,17 @@ module.exports = class WebRenderer extends Renderer {
       }
     };
 
-    this.domContainer.appendChild(video);
-    video.play();
+    setTimeout(() => {
+      video.play();
+      this.domContainer.appendChild(video);
+    }, offset);
+  }
+
+  scheduleSegmentRender(segment, delay) {
+    var offsetFromNow = window.performance.now() + delay;
+    this.scheduledRenders.push({
+      segment: segment,
+      time: offsetFromNow
+    });
   }
 };
