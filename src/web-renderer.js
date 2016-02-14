@@ -1,29 +1,36 @@
 
 var Renderer = require('./renderer');
 
+var TimePerFrame = 16.67;
+
 module.exports = class WebRenderer extends Renderer {
   constructor(options) {
     super(options);
 
     this.domContainer = document.body;
-    this.timeToLoadVideo = options.timeToLoadVideo || 1000;
+    this.timeToLoadVideo = options.timeToLoadVideo || 1200;
     this.scheduledRenders = [];
 
     console.log('frampton is starting now...');
 
     this.startTime = window.performance.now();
+    this.lastUpdateTime = this.startTime;
     this.update(); // get the loop going
   }
 
   update() {
     window.requestAnimationFrame(this.update.bind(this));
 
-    var offsetFromStart = window.performance.now() - this.startTime;
+    var now = window.performance.now();
+    this.lastUpdateTime = now;
+
+    var timeToLoad = this.timeToLoadVideo + TimePerFrame;
 
     for (var i = this.scheduledRenders.length - 1; i >= 0; i--) {
       var scheduledRender = this.scheduledRenders[i];
-      var timeUntilStart = scheduledRender.time - offsetFromStart;
-      if (timeUntilStart < this.timeToLoadVideo) {
+      var timeUntilStart = scheduledRender.time - now;
+
+      if (timeUntilStart < timeToLoad) {
         // start to render, and pop it off
         this.renderSegment(scheduledRender.segment, {offset: Math.max(timeUntilStart, 0)});
         this.scheduledRenders.splice(i, 1);
@@ -31,15 +38,25 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
-  renderSequencedSegment(sequenceSegment) {
-    var offset = 0;
-
+  renderSequencedSegment(sequenceSegment, {offset=0}) {
     sequenceSegment.segments.forEach((segment, idx) => {
       this.scheduleSegmentRender(segment, offset);
       offset += segment.msDuration();
 
-      // last item needs a cleanerupper
-      if (idx === sequenceSegment.segmentCount() - 1) {
+      if (idx === 0) {
+        var onStart = segment.onStart;
+        segment.onStart = () => {
+          // call and reset the original
+          if (onStart) {
+            onStart();
+          }
+          segment.onStart = onStart;
+
+          // start the sequence
+          sequenceSegment.didStart();
+        };
+      }
+      else if (idx === sequenceSegment.segmentCount() - 1) {
         var onComplete = segment.onComplete;
         segment.onComplete = () => {
           // call and reset the original
@@ -55,11 +72,7 @@ module.exports = class WebRenderer extends Renderer {
     });
   }
 
-  renderVideoSegment(segment, options) {
-    if (!options) options = {};
-
-    var offset = options.offset || 0;
-
+  renderVideoSegment(segment, {offset=0}) {
     var video = document.createElement('video');
     video.preload = true;
     video.className = 'frampton-video';
@@ -69,33 +82,42 @@ module.exports = class WebRenderer extends Renderer {
 
     video.style.zIndex = segment.z;
 
-    video.onended = function() {
-      if (segment.loop) {
-        video.currentTime = 0;
-        video.play();
-      }
-      else {
-        segment.cleanup();
-
-        video.parentNode.removeChild(video);
-        video.src = '';
-      }
-    };
+    video.currentTime = segment.startTime;
 
     video.style.opacity = 0;
     this.domContainer.appendChild(video);
 
-    setTimeout(() => {
+    setTimeout(function() {
+      start();
+      setTimeout(end, segment.msDuration());
+    }, offset); // -5 to offset Jank
+
+    function start() {
+      segment.didStart();
       video.play();
       video.style.opacity = 1;
-    }, offset - 5); // -5 to offset Jank
+    }
+
+    function end() {
+      if (segment.loop) {
+        video.pause();
+        video.currentTime = segment.startTime;
+        video.play();
+      }
+      else {
+        segment.cleanup();
+        video.style.opacity = 0;
+        video.src = '';
+        video.parentNode.removeChild(video);
+      }
+    }
   }
 
   scheduleSegmentRender(segment, delay) {
-    var offsetFromNow = window.performance.now() + delay;
+    var when = window.performance.now() + delay;
     this.scheduledRenders.push({
       segment: segment,
-      time: offsetFromNow
+      time: when
     });
   }
 };
