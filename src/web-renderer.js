@@ -82,6 +82,10 @@ module.exports = class WebRenderer extends Renderer {
 
     video.style.zIndex = segment.z;
 
+    if (segment.width) { video.style.width = video.style.height = segment.width; }
+    if (segment.top) { video.style.top = segment.top; }
+    if (segment.left) { video.style.left = segment.left; }
+
     video.currentTime = segment.startTime;
 
     video.style.opacity = 0;
@@ -103,6 +107,7 @@ module.exports = class WebRenderer extends Renderer {
         video.pause();
         video.currentTime = segment.startTime;
         video.play();
+        setTimeout(end, segment.msDuration());
       }
       else {
         segment.cleanup();
