@@ -5,6 +5,17 @@ module.exports = class Segment {
     this.onComplete = options.onComplete;
   }
 
+  copy(segment) {
+    this.onStart = segment.onStart;
+    this.onComplete = segment.onComplete;
+
+    return this;
+  }
+
+  clone() {
+    return new Segment({}).copy(this);
+  }
+
   didStart() {
     if (this.onStart) {
       this.onStart();

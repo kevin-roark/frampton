@@ -9,6 +9,22 @@ module.exports = class SequencedSegment extends Segment {
     this.segments = options.segments || [];
   }
 
+  copy(sequencedSegment, recursive) {
+    super.copy(sequencedSegment);
+
+    this.segments = [];
+    for (var i = 0; i < sequencedSegment.segments.length; i++) {
+      var segment = sequencedSegment.segments[i];
+      this.segments.push(recursive ? segment.clone() : segment);
+    }
+
+    return this;
+  }
+
+  clone() {
+    return new SequencedSegment({}).copy(this);
+  }
+
   getSegment(index) {
     return this.segments[index];
   }
@@ -24,4 +40,5 @@ module.exports = class SequencedSegment extends Segment {
     }
     return duration;
   }
+
 };

@@ -21,7 +21,32 @@ module.exports = class VideoSegment extends Segment {
     this.left = options.left;
   }
 
+  copy(videoSegment) {
+    super.copy(videoSegment);
+
+    this.filename = videoSegment.filename;
+    this.videoDuration = videoSegment.duration;
+    this.startTime = videoSegment.startTime;
+    this.duration = videoSegment.duration;
+    this.loop = videoSegment.loop;
+    this.z = videoSegment.z;
+    this.width = videoSegment.width;
+    this.left = videoSegment.left;
+    this.top = videoSegment.top;
+
+    return this;
+  }
+
+  clone() {
+    return new VideoSegment({}).copy(this);
+  }
+
   // Chaining Configuration
+
+  setFilename(filename) {
+    this.filename = filename;
+    return this;
+  }
 
   setEndTime(endTime) {
     this.startTime = endTime - this.duration;
