@@ -25,9 +25,12 @@ files.forEach(function(file) {
 function addVideo(file) {
   itemsBeingProcessed += 1;
   probe(path.join(config.path, file), function(err, probeData) {
+    var ffprobeDurationErrorConstant = 0.07;
+    var duration = probeData && probeData.streams ? probeData.streams[0].duration : 0.0;
+
     config.videos.push({
       filename: file,
-      duration: probeData && probeData.streams ? probeData.streams[0].duration : 0.0
+      duration: duration + ffprobeDurationErrorConstant
     });
 
     itemsBeingProcessed -= 1;

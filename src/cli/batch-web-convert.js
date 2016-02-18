@@ -14,8 +14,13 @@ if (args.length === 0) {
 var videoDirectory = args[0];
 var outputDirectory = videoDirectory + '-converted';
 
+if (!fs.existsSync(outputDirectory)){
+  fs.mkdirSync(outputDirectory);
+}
+
 var files = filesInPath(videoDirectory);
 var itemsBeingProcessed = 0;
+var videoFileQueue = [];
 
 files.forEach(function(file) {
   var videoExtensions = ['.mp4', '.avi', '.mov'];
@@ -25,11 +30,17 @@ files.forEach(function(file) {
 });
 
 function convertVideo(file) {
+  if (itemsBeingProcessed > 4) {
+    videoFileQueue.push(file);
+    return;
+  }
+
   itemsBeingProcessed += 1;
 
   var filepath = path.join(videoDirectory, file);
   var outputFilepath = path.join(outputDirectory, `${path.basename(file, path.extname(file))}.mp4`);
 
+  console.log(`converting ${filepath}...`);
   exec(`${__dirname}/web-mp4-convert.sh ${filepath} ${outputFilepath}`, function(err, stdout, stderr) {
     if (err) {
       console.log('error converting video: ');
@@ -37,7 +48,9 @@ function convertVideo(file) {
     }
 
     itemsBeingProcessed -= 1;
-    console.log('videos remaining: ' + itemsBeingProcessed);
+    if (itemsBeingProcessed <= 4 && videoFileQueue.length > 1) {
+      convertVideo(videoFileQueue.shift());
+    }
   });
 }
 
