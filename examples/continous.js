@@ -20,7 +20,7 @@ function newSequencedSegment() {
     onStart: () => {
       // once it starts, schedule the next loop with a new shuffle
       var newSegment = newSequencedSegment();
-      var offset = sequencedSegment.totalDuration() * 1000;
+      var offset = sequencedSegment.msDuration();
       renderer.scheduleSegmentRender(newSegment, offset);
     }
   });

@@ -1,7 +1,8 @@
 
 module.exports = {
   choice: choice,
-  shuffle: shuffle
+  shuffle: shuffle,
+  randInt: randInt
 };
 
 function choice(arr) {
@@ -17,4 +18,11 @@ function shuffle(arr) {
 
   newArray.sort(function() { return 0.5 - Math.random(); });
   return newArray;
+}
+
+function randInt(min, max) {
+  if (!min) min = 1;
+  if (!max) max = 1000;
+
+  return Math.floor(Math.random() * (max - min)) + min;
 }

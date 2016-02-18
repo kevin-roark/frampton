@@ -80,8 +80,8 @@ module.exports = class VideoSegment extends Segment {
     return this.startTime + this.duration;
   }
 
-  msDuration() {
-    return this.duration * 1000;
+  getDuration() {
+    return this.duration;
   }
 
   msStartTime() {

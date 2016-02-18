@@ -22,8 +22,10 @@ module.exports = class SequencedSegment extends Segment {
   }
 
   clone() {
-    return new SequencedSegment({}).copy(this);
+    return new SequencedSegment({}).copy(this, true);
   }
+
+  /// Generators
 
   getSegment(index) {
     return this.segments[index];
@@ -33,10 +35,10 @@ module.exports = class SequencedSegment extends Segment {
     return this.segments.length;
   }
 
-  totalDuration() {
+  getDuration() {
     var duration = 0;
     for (var i = 0; i < this.segments.length; i++) {
-      duration += this.segments[i].duration;
+      duration += this.segments[i].getDuration();
     }
     return duration;
   }

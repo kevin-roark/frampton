@@ -16,6 +16,8 @@ module.exports = class Segment {
     return new Segment({}).copy(this);
   }
 
+  /// Start and Finish
+
   didStart() {
     if (this.onStart) {
       this.onStart();
@@ -26,6 +28,16 @@ module.exports = class Segment {
     if (this.onComplete) {
       this.onComplete();
     }
+  }
+
+  /// Generators
+
+  getDuration() {
+    return 0;
+  }
+
+  msDuration() {
+    return this.getDuration() * 1000;
   }
 
 };
