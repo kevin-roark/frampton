@@ -37,15 +37,7 @@ function newSequencedSegment() {
   // choose a number of times to loop sequence
   var timesToLoopSegment = frampton.util.choice([1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 5, 6]);
 
-  // create the list of cloned sequences
-  var clonedSequenceSegments = [];
-  for (i = 0; i < timesToLoopSegment; i++) {
-    clonedSequenceSegments.push(sequencedSegment.clone());
-  }
-
-  // create the looping sequence segment
-  var loopingSegment = new frampton.SequencedSegment({
-    segments: clonedSequenceSegments,
+  var loopingSegment = frampton.finiteLoopingSegment(sequencedSegment, timesToLoopSegment, {
     onStart: () => {
       // once it starts, schedule the next loop with a new shuffle
       var newSegment = newSequencedSegment();
