@@ -13,6 +13,7 @@ if (args.length === 0) {
 
 var videoDirectory = args[0];
 var outputDirectory = videoDirectory + '-converted';
+var makeWebm = args.indexOf('--webm') > 0;
 
 if (!fs.existsSync(outputDirectory)){
   fs.mkdirSync(outputDirectory);
@@ -38,18 +39,39 @@ function convertVideo(file) {
   itemsBeingProcessed += 1;
 
   var filepath = path.join(videoDirectory, file);
-  var outputFilepath = path.join(outputDirectory, `${path.basename(file, path.extname(file))}.mp4`);
+  var extensionFreeFilename = path.basename(file, path.extname(file));
+  var outputMP4Filepath = path.join(outputDirectory, `${extensionFreeFilename}.mp4`);
 
   console.log(`converting ${filepath} to web mp4...`);
-  exec(`${__dirname}/web-mp4-convert.sh ${filepath} ${outputFilepath}`, function(err, stdout, stderr) {
+  exec(`${__dirname}/web-mp4-convert.sh ${filepath} ${outputMP4Filepath}`, function(err) {
     if (err) {
-      console.log('error converting video: ');
-      console.err(err);
+      console.log('error converting video to mp4: ');
+      console.error(err);
+      finishVideo();
+    }
+    else {
+      if (makeWebm) {
+        var extensionFreeOutputPath = path.join(outputDirectory, extensionFreeFilename);
+        console.log(`converting ${filepath} to webm...`);
+        exec(`${__dirname}/webm-convert.sh ${extensionFreeOutputPath}`, function(err) {
+          if (err) {
+            console.log('error converting video to webm: ');
+            console.error(err);
+          }
+
+          finishVideo();
+        });
+      }
+      else {
+        finishVideo();
+      }
     }
 
-    itemsBeingProcessed -= 1;
-    if (itemsBeingProcessed <= 4 && videoFileQueue.length > 1) {
-      convertVideo(videoFileQueue.shift());
+    function finishVideo() {
+      itemsBeingProcessed -= 1;
+      if (itemsBeingProcessed <= 4 && videoFileQueue.length > 1) {
+        convertVideo(videoFileQueue.shift());
+      }
     }
   });
 }
