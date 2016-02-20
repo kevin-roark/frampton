@@ -73,7 +73,7 @@ module.exports = class VideoSegment extends Segment {
   // Generators
 
   extensionlessName() {
-    return this.filename.substring(0, this.filename.indexOf('.'));
+    return this.filename.substring(0, this.filename.lastIndexOf('.'));
   }
 
   endTime() {

@@ -7,8 +7,10 @@ module.exports = class WebRenderer extends Renderer {
   constructor(options) {
     super(options);
 
-    this.domContainer = document.body;
     this.timeToLoadVideo = options.timeToLoadVideo || 1200;
+    this.videoSourceMaker = options.videoSourceMaker || this.defaultSourceMaker();
+
+    this.domContainer = document.body;
     this.scheduledRenders = [];
 
     console.log('frampton is starting now...');
@@ -78,7 +80,7 @@ module.exports = class WebRenderer extends Renderer {
     video.className = 'frampton-video';
 
     var filename = video.canPlayType('video/mp4').length > 0 ? segment.filename : segment.extensionlessName() + '.webm';
-    video.src = this.mediaConfig.path + filename;
+    video.src = this.videoSourceMaker(filename);
 
     video.style.zIndex = segment.z;
 
@@ -124,5 +126,11 @@ module.exports = class WebRenderer extends Renderer {
       segment: segment,
       time: when
     });
+  }
+
+  defaultSourceMaker() {
+    return (filename) =>  {
+        return this.mediaConfig.path + filename;
+    };
   }
 };

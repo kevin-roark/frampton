@@ -48,33 +48,42 @@ ncp(__dirname + '/../web-template', outputFilepath, (err) => {
     return console.error(err);
   }
 
-  // copy media
-  ncp(mediaConfig.path, outputFilepath + '/media', (err) => {
-    if (err) {
-      return console.error(err);
-    }
+  if (mediaConfig.path && mediaConfig.path.length > 0) {
+    // copy media
+    ncp(mediaConfig.path, outputFilepath + '/media', (err) => {
+      if (err) {
+        return console.error(err);
+      }
 
-    // modify and write config
-    mediaConfig.path = 'media/';
-    var tempConfigFilename = __dirname + '/media_config.json';
-    fs.writeFileSync(tempConfigFilename, JSON.stringify(mediaConfig));
-
-    // write temp main
-    var tempMainFilename = __dirname + '/tempmain.js';
-    fs.writeFileSync(tempMainFilename, mainJS);
-
-    // bundle it up
-    var bundler = browserify(tempMainFilename) .transform(babelify, {presets: ['es2015']});
-
-    if (shouldUglify) {
-      bundler.transform({global: true}, uglifyify);
-    }
-
-    bundler.bundle()
-      .pipe(fs.createWriteStream(outputFilepath + '/js/build.js'))
-      .on('finish', () => {
-        fs.unlinkSync(tempMainFilename);
-        fs.unlinkSync(tempConfigFilename);
-      });
-  });
+      bundle();
+    });
+  }
+  else {
+    bundle();
+  }
 });
+
+function bundle() {
+  // modify and write config
+  mediaConfig.path = 'media/';
+  var tempConfigFilename = __dirname + '/media_config.json';
+  fs.writeFileSync(tempConfigFilename, JSON.stringify(mediaConfig));
+
+  // write temp main
+  var tempMainFilename = __dirname + '/tempmain.js';
+  fs.writeFileSync(tempMainFilename, mainJS);
+
+  // bundle it up
+  var bundler = browserify(tempMainFilename) .transform(babelify, {presets: ['es2015']});
+
+  if (shouldUglify) {
+    bundler.transform({global: true}, uglifyify);
+  }
+
+  bundler.bundle()
+    .pipe(fs.createWriteStream(outputFilepath + '/js/build.js'))
+    .on('finish', () => {
+      fs.unlinkSync(tempMainFilename);
+      fs.unlinkSync(tempConfigFilename);
+    });
+}
