@@ -27,3 +27,22 @@ body {
   display: block;
   left: 0; top: 0; width: 100%; height: 100%;
 }
+
+.not-chrome-message {
+  position: absolute;
+  left: 50%; margin-left: -200px; width: 400px;
+  top: 60px;
+  padding: 12px;
+  background-color: white;
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 18px;
+  line-height: 1.4;
+  box-shadow: 0 14px 28px rgba(255,255,255,0.25), 0 10px 10px rgba(255,255,255,0.22);
+}
+  .not-chrome-message a {
+    color: rgba(0, 125, 255, 0.87);
+    text-decoration: none;
+  }
+    .not-chrome-message a:hover, .not-chrome-message a:focus {
+      text-decoration: underline;
+    }
