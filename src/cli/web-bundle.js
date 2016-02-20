@@ -2,6 +2,7 @@
 
 var ncp = require('ncp').ncp;
 var fs = require('fs');
+var jsonfile = require('jsonfile');
 var browserify = require('browserify');
 
 var args = process.argv.slice(2);
@@ -36,7 +37,7 @@ var mainJS = `
   })();\n
 `;
 
-var mediaConfig = require(__dirname + '/../../' + mediaConfigFilepath);
+var mediaConfig = jsonfile.readFileSync(mediaConfigFilepath);
 
 // copy web template
 ncp(__dirname + '/../web-template', outputFilepath, (err) => {
