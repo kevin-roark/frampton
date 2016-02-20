@@ -23,6 +23,12 @@ var score = fs.readFileSync(scoreFilePath).toString();
 // TODO: should just be able to require('frampton')
 var mainJS = `
   (function() {
+    var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    if (!isChrome) {
+      console.log('only chrome is supported for now...');
+      return;
+    }
+
     var frampton = require('../../src/frampton');
     var mediaConfig = require('./media_config.json');
 
