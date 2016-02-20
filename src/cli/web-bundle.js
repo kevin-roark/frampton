@@ -4,6 +4,8 @@ var ncp = require('ncp').ncp;
 var fs = require('fs');
 var jsonfile = require('jsonfile');
 var browserify = require('browserify');
+var babelify = require('babelify');
+var uglifyify = require('uglifyify');
 
 var args = process.argv.slice(2);
 if (args.length < 1) {
@@ -17,7 +19,8 @@ if (args.length < 2) {
 
 var scoreFilePath = args[0];
 var mediaConfigFilepath = args[1];
-var outputFilepath = args.length > 2 ? args[2] : './out';
+var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : './out';
+var shouldUglify = args.indexOf('--nougly') === -1;
 
 var score = fs.readFileSync(scoreFilePath).toString();
 
@@ -53,18 +56,25 @@ ncp(__dirname + '/../web-template', outputFilepath, (err) => {
 
     // modify and write config
     mediaConfig.path = 'media/';
-    fs.writeFileSync(outputFilepath + '/js/media_config.json', JSON.stringify(mediaConfig));
+    var tempConfigFilename = __dirname + '/media_config.json';
+    fs.writeFileSync(tempConfigFilename, JSON.stringify(mediaConfig));
 
-    // copy score code
-    var mainFilename = outputFilepath + '/js/main.js';
-    fs.writeFileSync(mainFilename, mainJS);
+    // write temp main
+    var tempMainFilename = __dirname + '/tempmain.js';
+    fs.writeFileSync(tempMainFilename, mainJS);
 
     // bundle it up
-    // TODO: run the whole thing through uglifyjs
-    browserify(mainFilename)
-      .transform('babelify', {presets: ['es2015']})
-      //.transform({global: true}, 'uglifyify')
-      .bundle()
-      .pipe(fs.createWriteStream(outputFilepath + '/js/build.js'));
+    var bundler = browserify(tempMainFilename) .transform(babelify, {presets: ['es2015']});
+
+    if (shouldUglify) {
+      bundler.transform({global: true}, uglifyify);
+    }
+
+    bundler.bundle()
+      .pipe(fs.createWriteStream(outputFilepath + '/js/build.js'))
+      .on('finish', () => {
+        fs.unlinkSync(tempMainFilename);
+        fs.unlinkSync(tempConfigFilename);
+      });
   });
 });

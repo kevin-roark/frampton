@@ -40,7 +40,7 @@ function convertVideo(file) {
   var filepath = path.join(videoDirectory, file);
   var outputFilepath = path.join(outputDirectory, `${path.basename(file, path.extname(file))}.mp4`);
 
-  console.log(`converting ${filepath}...`);
+  console.log(`converting ${filepath} to web mp4...`);
   exec(`${__dirname}/web-mp4-convert.sh ${filepath} ${outputFilepath}`, function(err, stdout, stderr) {
     if (err) {
       console.log('error converting video: ');
