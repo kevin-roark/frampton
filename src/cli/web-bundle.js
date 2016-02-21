@@ -21,6 +21,7 @@ var scoreFilePath = args[0];
 var mediaConfigFilepath = args[1];
 var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : './out';
 var shouldUglify = args.indexOf('--nougly') === -1;
+var onlyCopyScore = args.indexOf('--onlyscore') >= 0;
 
 var score = fs.readFileSync(scoreFilePath).toString();
 
@@ -42,26 +43,31 @@ var mainJS = `
 
 var mediaConfig = jsonfile.readFileSync(mediaConfigFilepath);
 
-// copy web template
-ncp(__dirname + '/../web-template', outputFilepath, (err) => {
-  if (err) {
-    return console.error(err);
-  }
+if (onlyCopyScore) {
+  bundle();
+}
+else {
+  // copy web template
+  ncp(__dirname + '/../web-template', outputFilepath, (err) => {
+    if (err) {
+      return console.error(err);
+    }
 
-  if (mediaConfig.path && mediaConfig.path.length > 0) {
-    // copy media
-    ncp(mediaConfig.path, outputFilepath + '/media', (err) => {
-      if (err) {
-        return console.error(err);
-      }
+    if (mediaConfig.path && mediaConfig.path.length > 0) {
+      // copy media
+      ncp(mediaConfig.path, outputFilepath + '/media', (err) => {
+        if (err) {
+          return console.error(err);
+        }
 
+        bundle();
+      });
+    }
+    else {
       bundle();
-    });
-  }
-  else {
-    bundle();
-  }
-});
+    }
+  });
+}
 
 function bundle() {
   // modify and write config
