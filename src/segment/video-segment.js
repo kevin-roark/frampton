@@ -16,6 +16,7 @@ module.exports = class VideoSegment extends Segment {
     this.duration = this.videoDuration - this.startTime;
     this.loop = options.loop || false;
     this.z = options.z || 0;
+    this.opacity = options.opacity || 1.0;
     this.width = options.width;
     this.top = options.top;
     this.left = options.left;

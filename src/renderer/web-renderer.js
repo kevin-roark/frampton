@@ -101,7 +101,7 @@ module.exports = class WebRenderer extends Renderer {
     function start() {
       segment.didStart();
       video.play();
-      video.style.opacity = 1;
+      video.style.opacity = segment.opacity;
     }
 
     function end() {
