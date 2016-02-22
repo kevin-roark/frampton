@@ -10,7 +10,7 @@ function newSequencedSegment() {
   var videos = frampton.util.shuffle(mediaConfig.videos);
 
   // choose the number of videos in the group
-  var numberOfVideos = frampton.util.choice([1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 8, 8, 9, 10]);
+  var numberOfVideos = frampton.util.choice([1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 7, 8]);
 
   // calculate the minimum duration
   var minimumDuration = 10000;
@@ -19,7 +19,7 @@ function newSequencedSegment() {
   }
 
   // choose the duration of each clip in the segment
-  var segmentDuration = (Math.pow(Math.random(), 2.5) * (minimumDuration - 0.1)) + 0.1;
+  var segmentDuration = (Math.pow(Math.random(), 2.8) * (minimumDuration - 0.1)) + 0.1;
 
   // construct the ordered list of segments
   var segments = [];
@@ -35,7 +35,7 @@ function newSequencedSegment() {
   });
 
   // choose a number of times to loop sequence
-  var timesToLoopSegment = frampton.util.choice([1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 5, 6]);
+  var timesToLoopSegment = frampton.util.choice([1, 1, 1, 2, 2, 2, 3, 3, 4,]);
 
   var loopingSegment = frampton.finiteLoopingSegment(sequencedSegment, timesToLoopSegment, {
     onStart: () => {
