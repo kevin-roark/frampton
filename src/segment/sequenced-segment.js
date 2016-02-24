@@ -2,7 +2,7 @@
 var Segment = require('./segment');
 
 module.exports = class SequencedSegment extends Segment {
-  constructor(options) {
+  constructor(options={}) {
     super(options);
 
     this.segmentType = 'sequence';
@@ -22,7 +22,7 @@ module.exports = class SequencedSegment extends Segment {
   }
 
   clone() {
-    return new SequencedSegment({}).copy(this, true);
+    return new SequencedSegment().copy(this, true);
   }
 
   /// Generators

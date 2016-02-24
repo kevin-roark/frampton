@@ -23,6 +23,8 @@ module.exports = class WebRenderer extends Renderer {
     this.update(); // get the loop going
   }
 
+  /// Runloop
+
   update() {
     window.requestAnimationFrame(this.update.bind(this));
 
@@ -43,39 +45,7 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
-  renderSequencedSegment(sequenceSegment, {offset=0}) {
-    sequenceSegment.segments.forEach((segment, idx) => {
-      this.scheduleSegmentRender(segment, offset);
-      offset += segment.msDuration();
-
-      if (idx === 0) {
-        var onStart = segment.onStart;
-        segment.onStart = () => {
-          // call and reset the original
-          if (onStart) {
-            onStart();
-          }
-          segment.onStart = onStart;
-
-          // start the sequence
-          sequenceSegment.didStart();
-        };
-      }
-      else if (idx === sequenceSegment.segmentCount() - 1) {
-        var onComplete = segment.onComplete;
-        segment.onComplete = () => {
-          // call and reset the original
-          if (onComplete) {
-            onComplete();
-          }
-          segment.onComplete = onComplete;
-
-          // clean up the sequence
-          sequenceSegment.cleanup();
-        };
-      }
-    });
-  }
+  /// Rendering
 
   renderVideoSegment(segment, {offset=0}) {
     var video = document.createElement('video');
@@ -130,6 +100,41 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
+  renderSequencedSegment(sequenceSegment, {offset=0}) {
+    sequenceSegment.segments.forEach((segment, idx) => {
+      this.scheduleSegmentRender(segment, offset);
+      offset += segment.msDuration();
+
+      if (idx === 0) {
+        this.overrideOnStart(segment, () => {
+          sequenceSegment.didStart();
+        });
+      }
+      else if (idx === sequenceSegment.segmentCount() - 1) {
+        this.overrideOnComplete(segment, () => {
+          sequenceSegment.cleanup();
+        });
+      }
+    });
+  }
+
+  renderStackedSegment(stackedSegment, {offset=0}) {
+    stackedSegment.segments.forEach((segment, idx) => {
+      var segmentOffset = offset + stackedSegment.msSegmentOffset(idx);
+      this.scheduleSegmentRender(segment, segmentOffset);
+
+      if (idx === 0) {
+        this.overrideOnStart(segment, () => {
+          stackedSegment.didStart();
+        });
+      }
+    });
+
+    setTimeout(stackedSegment.cleanup.bind(stackedSegment), offset + stackedSegment.msDuration());
+  }
+
+  /// Scheduling
+
   scheduleSegmentRender(segment, delay) {
     var when = window.performance.now() + delay;
     this.scheduledRenders.push({
@@ -137,6 +142,8 @@ module.exports = class WebRenderer extends Renderer {
       time: when
     });
   }
+
+  /// Utility
 
   defaultSourceMaker() {
     return (filename) =>  {
