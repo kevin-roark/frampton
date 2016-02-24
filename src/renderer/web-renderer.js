@@ -98,6 +98,7 @@ module.exports = class WebRenderer extends Renderer {
 
     if (this.log) {
       video.onplaying = function() {
+        console.log(`playing ${video.src}`);
         console.log(`actual duration: ${video.duration}, segment duration: ${segment.videoDuration}, difference: ${segment.videoDuration - video.duration}`);
       };
     }

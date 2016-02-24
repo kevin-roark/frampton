@@ -26,7 +26,7 @@ module.exports = class VideoSegment extends Segment {
     super.copy(videoSegment);
 
     this.filename = videoSegment.filename;
-    this.videoDuration = videoSegment.duration;
+    this.videoDuration = videoSegment.videoDuration;
     this.startTime = videoSegment.startTime;
     this.duration = videoSegment.duration;
     this.loop = videoSegment.loop;
