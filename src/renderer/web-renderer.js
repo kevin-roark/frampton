@@ -14,7 +14,9 @@ module.exports = class WebRenderer extends Renderer {
     this.domContainer = document.body;
     this.scheduledRenders = [];
 
-    console.log('frampton is starting now...');
+    if (this.log) {
+      console.log('frampton is starting now...');
+    }
 
     this.startTime = window.performance.now();
     this.lastUpdateTime = this.startTime;
