@@ -9,6 +9,7 @@ module.exports = class WebRenderer extends Renderer {
 
     this.timeToLoadVideo = options.timeToLoadVideo || 1200;
     this.videoSourceMaker = options.videoSourceMaker || this.defaultSourceMaker();
+    this.log = options.log || false;
 
     this.domContainer = document.body;
     this.scheduledRenders = [];
@@ -92,6 +93,12 @@ module.exports = class WebRenderer extends Renderer {
 
     video.style.opacity = 0;
     this.domContainer.appendChild(video);
+
+    if (this.log) {
+      video.onplaying = function() {
+        console.log(`actual duration: ${video.duration}, segment duration: ${segment.videoDuration}, difference: ${segment.videoDuration - video.duration}`);
+      };
+    }
 
     setTimeout(function() {
       start();

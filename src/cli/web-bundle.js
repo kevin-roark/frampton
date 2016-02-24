@@ -23,7 +23,8 @@ var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1]
 var shouldUglify = args.indexOf('--nougly') === -1;
 var onlyCopyScore = args.indexOf('--onlyscore') >= 0;
 
-var score = fs.readFileSync(scoreFilePath).toString();
+var score = fs.readFileSync(scoreFilePath).toString()
+            .replace('frampton.Renderer', 'frampton.WebRenderer');
 
 // TODO: should just be able to require('frampton')
 var mainJS = `
