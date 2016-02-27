@@ -7,7 +7,7 @@ module.exports = class WebRenderer extends Renderer {
   constructor(options) {
     super(options);
 
-    this.timeToLoadVideo = options.timeToLoadVideo || 1200;
+    this.timeToLoadVideo = options.timeToLoadVideo || 4000;
     this.videoSourceMaker = options.videoSourceMaker || this.defaultSourceMaker();
     this.log = options.log || false;
 
