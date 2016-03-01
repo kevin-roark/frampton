@@ -14,6 +14,7 @@ module.exports = class VideoSegment extends Segment {
     // segment configuration
     this.startTime = options.startTime || 0;
     this.duration = this.videoDuration - this.startTime;
+    this.playbackRate = options.playbackRate || 1.0;
     this.loop = options.loop || false;
     this.z = options.z || 0;
     this.opacity = options.opacity || 1.0;
@@ -29,6 +30,7 @@ module.exports = class VideoSegment extends Segment {
     this.videoDuration = videoSegment.videoDuration;
     this.startTime = videoSegment.startTime;
     this.duration = videoSegment.duration;
+    this.playbackRate = videoSegment.playbackRate;
     this.loop = videoSegment.loop;
     this.z = videoSegment.z;
     this.width = videoSegment.width;
@@ -82,7 +84,7 @@ module.exports = class VideoSegment extends Segment {
   }
 
   getDuration() {
-    return this.duration;
+    return this.duration / this.playbackRate;
   }
 
   msStartTime() {

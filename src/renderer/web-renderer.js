@@ -62,6 +62,7 @@ module.exports = class WebRenderer extends Renderer {
     if (segment.left) { video.style.left = segment.left; }
 
     video.currentTime = segment.startTime;
+    video.playbackRate = segment.playbackRate;
 
     video.style.opacity = 0;
     this.domContainer.appendChild(video);
@@ -76,7 +77,7 @@ module.exports = class WebRenderer extends Renderer {
     setTimeout(function() {
       start();
       setTimeout(end, segment.msDuration());
-    }, offset); // -5 to offset Jank
+    }, offset);
 
     function start() {
       segment.didStart();
