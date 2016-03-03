@@ -31,7 +31,8 @@ function addVideo(file) {
 
     config.videos.push({
       filename: file,
-      duration: duration + durationErrorConstant
+      duration: duration + durationErrorConstant,
+      tags: []
     });
 
     itemsBeingProcessed -= 1;
