@@ -42,4 +42,8 @@ module.exports = class Segment {
     return this.getDuration() * 1000;
   }
 
+  simpleName() {
+    return 'plain segment';
+  }
+
 };

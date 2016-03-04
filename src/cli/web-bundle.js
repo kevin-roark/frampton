@@ -26,7 +26,6 @@ var onlyCopyScore = args.indexOf('--onlyscore') >= 0;
 var score = fs.readFileSync(scoreFilePath).toString()
             .replace('frampton.Renderer', 'frampton.WebRenderer');
 
-// TODO: should just be able to require('frampton')
 var mainJS = `
   (function() {
     var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
@@ -81,7 +80,7 @@ function bundle() {
   fs.writeFileSync(tempMainFilename, mainJS);
 
   // bundle it up
-  var bundler = browserify(tempMainFilename) .transform(babelify, {presets: ['es2015']});
+  var bundler = browserify(tempMainFilename).transform(babelify, {presets: ['es2015']});
 
   if (shouldUglify) {
     bundler.transform({global: true}, uglifyify);

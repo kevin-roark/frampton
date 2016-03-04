@@ -1,5 +1,5 @@
 
-var renderer = new frampton.WebRenderer({
+var renderer = new frampton.Renderer({
   mediaConfig: mediaConfig
 });
 
