@@ -21,12 +21,14 @@ module.exports = class Segment {
   didStart() {
     if (this.onStart) {
       this.onStart();
+      this.onStart = undefined;
     }
   }
 
   cleanup() {
     if (this.onComplete) {
       this.onComplete();
+      this.onComplete = undefined;
     }
   }
 

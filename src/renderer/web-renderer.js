@@ -8,14 +8,12 @@ module.exports = class WebRenderer extends Renderer {
     super(options);
 
     this.timeToLoadVideo = options.timeToLoadVideo || 4000;
-    this.videoSourceMaker = options.videoSourceMaker || this.defaultSourceMaker();
+    this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : (filename) =>  {
+      return this.mediaConfig.path + filename;
+    };
 
     this.domContainer = document.body;
     this.scheduledRenders = [];
-
-    if (this.log) {
-      console.log('frampton is starting now...');
-    }
 
     this.startTime = window.performance.now();
     this.lastUpdateTime = this.startTime;
@@ -45,6 +43,14 @@ module.exports = class WebRenderer extends Renderer {
   }
 
   /// Rendering
+
+  scheduleSegmentRender(segment, delay) {
+    var when = window.performance.now() + delay;
+    this.scheduledRenders.push({
+      segment: segment,
+      time: when
+    });
+  }
 
   renderVideoSegment(segment, {offset=0}) {
     var video = document.createElement('video');
@@ -100,54 +106,4 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
-  renderSequencedSegment(sequenceSegment, {offset=0}) {
-    sequenceSegment.segments.forEach((segment, idx) => {
-      this.scheduleSegmentRender(segment, offset);
-      offset += segment.msDuration();
-
-      if (idx === 0) {
-        this.overrideOnStart(segment, () => {
-          sequenceSegment.didStart();
-        });
-      }
-      else if (idx === sequenceSegment.segmentCount() - 1) {
-        this.overrideOnComplete(segment, () => {
-          sequenceSegment.cleanup();
-        });
-      }
-    });
-  }
-
-  renderStackedSegment(stackedSegment, {offset=0}) {
-    stackedSegment.segments.forEach((segment, idx) => {
-      var segmentOffset = offset + stackedSegment.msSegmentOffset(idx);
-      this.scheduleSegmentRender(segment, segmentOffset);
-
-      if (idx === 0) {
-        this.overrideOnStart(segment, () => {
-          stackedSegment.didStart();
-        });
-      }
-    });
-
-    setTimeout(stackedSegment.cleanup.bind(stackedSegment), offset + stackedSegment.msDuration());
-  }
-
-  /// Scheduling
-
-  scheduleSegmentRender(segment, delay) {
-    var when = window.performance.now() + delay;
-    this.scheduledRenders.push({
-      segment: segment,
-      time: when
-    });
-  }
-
-  /// Utility
-
-  defaultSourceMaker() {
-    return (filename) =>  {
-        return this.mediaConfig.path + filename;
-    };
-  }
 };

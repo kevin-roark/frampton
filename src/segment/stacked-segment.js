@@ -52,4 +52,10 @@ module.exports = class StackedSegment extends Segment {
     return Math.max.apply(null, this.segmentEndTimes);
   }
 
+  lastSegment() {
+    var maxEndTime = Math.max.apply(null, this.segmentEndTimes);
+    var maxEndTimeIndex = this.segmentEndTimes.indexOf(maxEndTime) || this.segmentEndTimes.length - 1;
+    return this.segments[maxEndTimeIndex];
+  }
+
 };
