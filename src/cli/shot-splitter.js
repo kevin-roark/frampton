@@ -28,24 +28,34 @@ var shotData = subtitleParser.getSubtitles({
   timeFormat: 'ms'
 });
 
-var msPerFrame = 1000 / fps;
+var msPerFrame = 41;
+
+var shotDataArray = Object.keys(shotData);
+var lastIdx = shotDataArray.length - 1;
 
 shotData.forEach(function(shot, idx) {
-  if (idx > 50) {
-    return;
-  }
 
   var outfile = path.join(outputFilepath, `${shot.index}.mp4`);
 
-  var start;
+  var start, duration;
   if (idx === 0) {
-    start = shot.start / 1000;
+    start = (shot.start - (3 * msPerFrame))  / 1000;
+    duration = shot.duration / 1000;
+  }
+  else if (idx === 1) {
+    start = (shot.start - (4 * msPerFrame))  / 1000;
+    duration = (shot.duration + (3 * msPerFrame)) / 1000;
+  }
+  else if (idx === lastIdx ) {
+    start = (shot.start - (3 * msPerFrame))  / 1000;
+    duration = (shot.duration + (4 * msPerFrame)) / 1000;
   }
   else {
-    start = Math.max(0, (shot.start - msPerFrame) / 1000);
+    start = Math.max(0, (shot.start - (3 * msPerFrame)) / 1000);
+    duration = (shot.duration + (2 * msPerFrame)) / 1000;
   }
 
-  var duration = Math.max(msPerFrame, (shot.duration - msPerFrame)) / 1000;
+
 
   var command = `ffmpeg -ss ${start} -t ${duration} -i ${videoFilepath} -c:v libx264 ${outfile}`;
   run(command);
@@ -58,13 +68,13 @@ function run(command) {
     commandQueue.push(command);
     return;
   }
-
+  commandsRunning += 1;
   exec(command, (err) => {
     if (err) {
       console.log(err);
     }
-
-    if (commandQueue.length > 0) {
+    commandsRunning -= 1;
+    if (commandsRunning <= 4 && commandQueue.length > 1) {
       var command = commandQueue.shift();
       run(command);
     }
