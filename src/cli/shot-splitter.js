@@ -35,8 +35,9 @@ var commandQueue = [];
 var msPerFrame = 41;
 var startMutliplier = 3;
 
-shotData.forEach(function(shot, idx) {
+console.log(`about to split ${videoFilepath} into ${shotData.length} shots`);
 
+shotData.forEach(function(shot, idx) {
   var outfile = path.join(outputFilepath, `${shot.index}.mp4`);
 
   var start, duration;
@@ -67,6 +68,8 @@ function run(command) {
     return;
   }
 
+  console.log(`running: ${command}`);
+
   commandsRunning += 1;
   exec(command, (err) => {
     if (err) {
@@ -74,7 +77,7 @@ function run(command) {
     }
 
     commandsRunning -= 1;
-    if (commandQueue.length > 1) {
+    if (commandQueue.length > 0) {
       var nextCommand = commandQueue.shift();
       run(nextCommand);
     }
