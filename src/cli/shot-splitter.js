@@ -33,11 +33,10 @@ var commandsRunning = 0;
 var commandQueue = [];
 
 var msPerFrame = 41;
-var startMutliplier = 3;
-
-console.log(`about to split ${videoFilepath} into ${shotData.length} shots`);
+var startMutliplier = 2; //premiere value is 3
 
 shotData.forEach(function(shot, idx) {
+
   var outfile = path.join(outputFilepath, `${shot.index}.mp4`);
 
   var start, duration;
@@ -46,16 +45,16 @@ shotData.forEach(function(shot, idx) {
     duration = (shot.duration) / 1000;
   }
   else if (idx === 1) {
-    start = (shot.start - ((startMutliplier)  * msPerFrame))  / 1000;
+    start = (shot.start - ((startMutliplier )  * msPerFrame))  / 1000;
     duration = (shot.duration + (2 * msPerFrame)) / 1000;
   }
   else if (idx === shotData.length - 1) {
     start = (shot.start - (startMutliplier * msPerFrame))  / 1000;
-    duration = (shot.duration + (3 * msPerFrame)) / 1000;
+    duration = (shot.duration + (2 * msPerFrame)) / 1000; //premiere value is 3
   }
   else {
     start = Math.max(0, (shot.start - (startMutliplier * msPerFrame)) / 1000);
-    duration = (shot.duration + (2 * msPerFrame)) / 1000;
+    duration = (shot.duration + (1 * msPerFrame)) / 1000; //premiere value is 2
   }
 
   var command = `ffmpeg -ss ${start} -t ${duration} -i ${videoFilepath} -c:v libx264 ${outfile}`;
@@ -67,8 +66,6 @@ function run(command) {
     commandQueue.push(command);
     return;
   }
-
-  console.log(`running: ${command}`);
 
   commandsRunning += 1;
   exec(command, (err) => {
