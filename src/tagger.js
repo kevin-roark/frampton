@@ -56,6 +56,28 @@ export class Tagger {
     return videos;
   }
 
+  videosWithoutTag(tag, options) {
+    var videos = [];
+
+    var allVideos = this.mediaConfig.videos;
+    for (var i = 0; i < allVideos.length; i++) {
+      var video = allVideos[i];
+      if (!this.videoHasTag(video, tag)) {
+        videos.push(tag);
+      }
+    }
+
+    if (options && options.shuffle) {
+      videos = util.shuffle(videos);
+    }
+
+    if (options && options.limit) {
+      videos = videos.slice(0, options.limit);
+    }
+
+    return videos;
+  }
+
   randomVideoWithTag(tag) {
     var videos = this.videosWithTag(tag);
     return util.choice(videos);
