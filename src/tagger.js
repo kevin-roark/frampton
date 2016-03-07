@@ -33,22 +33,6 @@ export class Tagger {
     this.tagMap = tagMap;
   }
 
-  tagVideosWithPattern(pattern, tag) {
-    var videos = this.mediaConfig.videos;
-    for (var i = 0; i < videos.length; i++) {
-      var video = videos[i];
-      if (video.filename.indexOf(pattern) >= 0) {
-        if (!video.tags) {
-          video.tags = [];
-        }
-
-        video.tags.push(tag);
-      }
-    }
-
-    this.buildTagMap();
-  }
-
   videosWithTag(tag, options) {
     var videos = this.tagMap[tag] || [];
 
@@ -66,5 +50,77 @@ export class Tagger {
   randomVideoWithTag(tag) {
     var videos = this.videosWithTag(tag);
     return util.choice(videos);
+  }
+
+  videoHasTag(video, tag) {
+    if (!video) return false;
+
+    var filename = video.filename || video;
+
+    var videosWithTag = this.videosWithTag(tag);
+
+    for (var i = 0; i < videosWithTag.length; i++) {
+      if (videosWithTag[i].filename === filename) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Utility Taggers
+
+  tagVideosWithPattern(pattern, tag) {
+    var videos = this.mediaConfig.videos;
+    for (var i = 0; i < videos.length; i++) {
+      var video = videos[i];
+      if (video.filename.indexOf(pattern) >= 0) {
+        if (!video.tags) {
+          video.tags = [];
+        }
+
+        video.tags.push(tag);
+      }
+    }
+
+    this.buildTagMap();
+  }
+
+  tagVideosWithQualitativeLength() {
+    var videos = this.mediaConfig.videos;
+    for (var i = 0; i < videos.length; i++) {
+      var video = videos[i];
+      var duration = video.duration;
+
+      var tag;
+      if (duration < 0.3) {
+        tag = 'short1';
+      }
+      else if (duration < 1.0) {
+        tag = 'short2';
+      }
+      else if (duration < 3.0) {
+        tag = 'med1';
+      }
+      else if (duration < 5.0) {
+        tag = 'med2';
+      }
+      else if (duration < 10.0) {
+        tag = 'long1';
+      }
+      else if (duration < 30.0) {
+        tag = 'long2';
+      }
+      else {
+        tag = 'long3';
+      }
+
+      if (!video.tags) {
+        video.tags = [];
+      }
+      video.tags.push(tag);
+    }
+
+    this.buildTagMap();
   }
 }
