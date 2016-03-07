@@ -32,6 +32,8 @@ var shotData = subtitleParser.getSubtitles({
 var commandsRunning = 0;
 var commandQueue = [];
 
+var shotDataArray = Object.keys(shotData);
+var lastIdx = shotDataArray.length - 1;
 var msPerFrame = 41;
 var startMutliplier = 3;
 
@@ -46,10 +48,10 @@ shotData.forEach(function(shot, idx) {
     duration = (shot.duration) / 1000;
   }
   else if (idx === 1) {
-    start = (shot.start - ((startMutliplier + 1) * msPerFrame))  / 1000;
-    duration = (shot.duration + (3 * msPerFrame)) / 1000;
+    start = (shot.start - ((startMutliplier)  * msPerFrame))  / 1000;
+    duration = (shot.duration + (2 * msPerFrame)) / 1000;
   }
-  else if (idx === shotData.length - 1) {
+  else if (idx === lastIdx) {
     start = (shot.start - (startMutliplier * msPerFrame))  / 1000;
     duration = (shot.duration + (3 * msPerFrame)) / 1000;
   }
