@@ -29,19 +29,15 @@ var shotData = subtitleParser.getSubtitles({
   timeFormat: 'ms'
 });
 
+var commandsRunning = 0;
+var commandQueue = [];
+
 var msPerFrame = 41;
-
-var shotDataArray = Object.keys(shotData);
-var lastIdx = shotDataArray.length - 1;
-
 var startMutliplier = 3;
-
 
 shotData.forEach(function(shot, idx) {
 
   var outfile = path.join(outputFilepath, `${shot.index}.mp4`);
-
-
 
   var start, duration;
   if (idx === 0) {
@@ -52,7 +48,7 @@ shotData.forEach(function(shot, idx) {
     start = (shot.start - ((startMutliplier + 1) * msPerFrame))  / 1000;
     duration = (shot.duration + (3 * msPerFrame)) / 1000;
   }
-  else if (idx === lastIdx ) {
+  else if (idx === shotData.length - 1) {
     start = (shot.start - (startMutliplier * msPerFrame))  / 1000;
     duration = (shot.duration + (3 * msPerFrame)) / 1000;
   }
@@ -61,28 +57,26 @@ shotData.forEach(function(shot, idx) {
     duration = (shot.duration + (2 * msPerFrame)) / 1000;
   }
 
-
-
   var command = `ffmpeg -ss ${start} -t ${duration} -i ${videoFilepath} -c:v libx264 ${outfile}`;
   run(command);
 });
 
-var commandsRunning = 0;
-var commandQueue = [];
 function run(command) {
-  if (commandsRunning > 5 ) {
+  if (commandsRunning > 5) {
     commandQueue.push(command);
     return;
   }
+
   commandsRunning += 1;
   exec(command, (err) => {
     if (err) {
       console.log(err);
     }
+
     commandsRunning -= 1;
-    if (commandsRunning <= 4 && commandQueue.length > 1) {
-      var command = commandQueue.shift();
-      run(command);
+    if (commandQueue.length > 1) {
+      var nextCommand = commandQueue.shift();
+      run(nextCommand);
     }
   });
 }
