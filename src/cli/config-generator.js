@@ -2,13 +2,13 @@
 
 var fs = require('fs');
 var path = require('path');
-var probe = require('node-ffprobe');
+var execSync = require('child_process').execSync;
 
 var args = process.argv.slice(2);
 
 var mediaPath = args.length > 0 ? args[0] : './media';
 var outputFilepath = args.indexOf('--out') >= 0 ? args[args.indexOf('--out') + 1] : './media_config.json';
-var durationErrorConstant = args.indexOf('--durationConstant') >= 0 ? Number(args[args.indexOf('--durationConstant') + 1]) : 0.06;
+var durationErrorConstant = args.indexOf('--durationConstant') >= 0 ? Number(args[args.indexOf('--durationConstant') + 1]) : 0;
 
 var config = {
   path: mediaPath,
@@ -16,7 +16,6 @@ var config = {
 };
 
 var files = filesInPath(config.path);
-var itemsBeingProcessed = 0;
 
 files.forEach(function(file) {
   if (path.extname(file) === '.mp4') {
@@ -24,32 +23,27 @@ files.forEach(function(file) {
   }
 });
 
+config.videos.sort(function(a, b) {
+  return a.filename.localeCompare(b.filename);
+});
+
+var jsonConfig = JSON.stringify(config);
+fs.writeFileSync(outputFilepath, jsonConfig);
+console.log(`generated config at ${outputFilepath}`);
+
+
 function addVideo(file) {
-  itemsBeingProcessed += 1;
-  probe(path.join(config.path, file), function(err, probeData) {
-    var duration = probeData && probeData.streams ? probeData.streams[0].duration : 0.0;
+  var videoPath = path.join(config.path, file);
 
-    config.videos.push({
-      filename: file,
-      duration: duration + durationErrorConstant,
-      tags: []
-    });
+  var mediainfoCommand = `mediainfo --Inform="General;%Duration%" ${videoPath}`;
+  var mediainfoDuration = parseFloat(execSync(mediainfoCommand).toString());
+  var duration = mediainfoDuration / 1000;
 
-    itemsBeingProcessed -= 1;
-    if (itemsBeingProcessed === 0) {
-      writeToFile();
-    }
+  config.videos.push({
+    filename: file,
+    duration: duration + durationErrorConstant,
+    tags: []
   });
-}
-
-function writeToFile() {
-  config.videos.sort(function(a, b) {
-    return a.filename.localeCompare(b.filename);
-  });
-
-  var jsonConfig = JSON.stringify(config);
-  fs.writeFileSync(outputFilepath, jsonConfig);
-  console.log('generated config at ' + outputFilepath);
 }
 
 function filesInPath(dir) {

@@ -2,33 +2,43 @@
   "path": "examples/numbers",
   "videos": [{
     "filename": "1.mp4",
-    "duration": 5.033333
-  }, {
-    "filename": "3.mp4",
-    "duration": 5.033333
+    "duration": 5.033,
+    "tags": []
   }, {
     "filename": "10.mp4",
-    "duration": 5.033333
-  }, {
-    "filename": "4.mp4",
-    "duration": 5.033333
-  }, {
-    "filename": "6.mp4",
-    "duration": 5.033333
-  }, {
-    "filename": "5.mp4",
-    "duration": 5.033333
+    "duration": 5.033,
+    "tags": []
   }, {
     "filename": "2.mp4",
-    "duration": 5.033333
+    "duration": 5.033,
+    "tags": []
+  }, {
+    "filename": "3.mp4",
+    "duration": 5.033,
+    "tags": []
+  }, {
+    "filename": "4.mp4",
+    "duration": 5.033,
+    "tags": []
+  }, {
+    "filename": "5.mp4",
+    "duration": 5.033,
+    "tags": []
+  }, {
+    "filename": "6.mp4",
+    "duration": 5.033,
+    "tags": []
   }, {
     "filename": "7.mp4",
-    "duration": 5.033333
+    "duration": 5.033,
+    "tags": []
   }, {
     "filename": "8.mp4",
-    "duration": 5.033333
+    "duration": 5.033,
+    "tags": []
   }, {
     "filename": "9.mp4",
-    "duration": 5.033333
+    "duration": 5.033,
+    "tags": []
   }]
 }
