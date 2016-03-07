@@ -4,6 +4,15 @@ var util = require('./util');
 export class Tagger {
   constructor(mediaConfig) {
     this.mediaConfig = mediaConfig;
+
+    var videos = this.mediaConfig.videos;
+    for (var i = 0; i < videos.length; i++) {
+      var video = videos[i];
+      if (!video.tags) {
+        video.tags = [];
+      }
+    }
+
     this.buildTagMap();
   }
 
@@ -75,10 +84,6 @@ export class Tagger {
     for (var i = 0; i < videos.length; i++) {
       var video = videos[i];
       if (video.filename.indexOf(pattern) >= 0) {
-        if (!video.tags) {
-          video.tags = [];
-        }
-
         video.tags.push(tag);
       }
     }
@@ -115,9 +120,6 @@ export class Tagger {
         tag = 'long3';
       }
 
-      if (!video.tags) {
-        video.tags = [];
-      }
       video.tags.push(tag);
     }
 
