@@ -34,7 +34,7 @@ var mainJS = `
       return;
     }
 
-    var frampton = require('../../src/frampton');
+    var frampton = require('../../src/web-frampton');
     var mediaConfig = require('./media_config.json');
 
     ${score}

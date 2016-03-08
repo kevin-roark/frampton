@@ -8,7 +8,6 @@ module.exports = {
 
   Renderer: require('./renderer/renderer'),
   VideoRenderer: require('./renderer/video-renderer'),
-  WebRenderer: require('./renderer/web-renderer'),
 
   tagger: require('./tagger'),
   mediaArranger: require('./media-arranger'),
