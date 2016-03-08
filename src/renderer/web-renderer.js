@@ -8,12 +8,18 @@ module.exports = class WebRenderer extends Renderer {
     super(options);
 
     this.timeToLoadVideo = options.timeToLoadVideo || 4000;
+    this.startDelayCorrection = options.startDelayCorrection || 1.8; // this adapts over time
+    this.startPerceptionCorrection = options.startPerceptionCorrection || 13; // this is constant
+
     this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : (filename) =>  {
       return this.mediaConfig.path + filename;
     };
 
     this.domContainer = document.body;
     this.scheduledRenders = [];
+
+    this.videosPlayed = 0;
+    this.meanStartDelay = 0;
 
     this.startTime = window.performance.now();
     this.lastUpdateTime = this.startTime;
@@ -53,6 +59,8 @@ module.exports = class WebRenderer extends Renderer {
   }
 
   renderVideoSegment(segment, {offset=0}) {
+    var self = this;
+
     var video = document.createElement('video');
     video.preload = true;
     video.className = 'frampton-video';
@@ -69,28 +77,65 @@ module.exports = class WebRenderer extends Renderer {
     video.currentTime = segment.startTime;
     video.playbackRate = segment.playbackRate;
 
-    video.style.opacity = 0;
+    var displayStyle = video.style.display || 'block';
+    video.style.display = 'none';
     this.domContainer.appendChild(video);
 
-    if (this.log) {
-      video.onplaying = function() {
-        console.log(`playing ${video.src}`);
-        console.log(`actual duration: ${video.duration}, segment duration: ${segment.videoDuration}, difference: ${segment.videoDuration - video.duration}`);
-      };
-    }
+    var expectedStart = window.performance.now() + offset;
+    video.addEventListener('playing', function() {
+      var now = window.performance.now();
+      var startDelay = now + self.startPerceptionCorrection - expectedStart;
 
-    setTimeout(function() {
-      start();
-      setTimeout(end, segment.msDuration());
-    }, offset);
+      var endTimeout = segment.msDuration();
+      if (startDelay > self.startPerceptionCorrection) {
+        endTimeout -= startDelay;
+      }
+
+      setTimeout(end, endTimeout);
+
+      self.videosPlayed += 1;
+      if (self.videosPlayed === 1) {
+        self.meanStartDelay = startDelay;
+      }
+      else {
+        self.meanStartDelay = (self.meanStartDelay * (self.videosPlayed - 1) + startDelay) / (self.videosPlayed);
+
+        if (Math.abs(self.meanStartDelay > 1)) {
+          if (self.meanStartDelay > 0.05 && self.startDelayCorrection < 3) {
+            self.startDelayCorrection += 0.05;
+          }
+          else if (self.meanStartDelay < -0.05 && self.startDelayCorrection > 0.05) {
+            self.startDelayCorrection -= 0.05;
+          }
+        }
+      }
+
+      if (self.log) {
+        console.log(`${now}: start ${filename} | duration ${segment.msDuration()} | start delay ${startDelay}`);
+        console.log(`start correction ${self.startDelayCorrection} | mean delay ${self.meanStartDelay}`);
+      }
+    }, false);
+
+    setTimeout(start, offset - this.startDelayCorrection - this.startPerceptionCorrection);
 
     function start() {
-      segment.didStart();
       video.play();
-      video.style.opacity = segment.opacity;
+
+      video.style.display = displayStyle;
+      if (segment.opacity !== 1.0) {
+        video.style.opacity = segment.opacity;
+      }
+
+      segment.didStart();
     }
 
     function end() {
+      if (self.log) {
+        var now = window.performance.now();
+        var expectedEnd = expectedStart + segment.msDuration();
+        console.log(`${now}: finish ${filename} | end delay: ${now - expectedEnd}`);
+      }
+
       if (segment.loop) {
         video.pause();
         video.currentTime = segment.startTime;
@@ -98,10 +143,9 @@ module.exports = class WebRenderer extends Renderer {
         setTimeout(end, segment.msDuration());
       }
       else {
-        segment.cleanup();
-        video.style.opacity = 0;
-        video.src = '';
         video.parentNode.removeChild(video);
+        video.src = '';
+        segment.cleanup();
       }
     }
   }
