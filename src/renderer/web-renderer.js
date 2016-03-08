@@ -142,7 +142,6 @@ module.exports = class WebRenderer extends Renderer {
 
       if (self.audioFadeDuration) {
         var fadeDuration = Math.min(self.audioFadeDuration, segmentDuration / 2);
-        console.log(fadeDuration);
 
         // fade in
         video.volume = 0;
