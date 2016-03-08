@@ -10,9 +10,17 @@ module.exports = class Renderer {
     }
   }
 
-  /// Rendering
+  /// Scheduling
 
   scheduleSegmentRender(segment, offset) {}
+
+  insertScheduledUnit(scheduledUnit, units) {
+    var insertionIndex = getInsertionIndex(units, scheduledUnit, compareScheduledUnits);
+    units.splice(insertionIndex, 0, scheduledUnit);
+  }
+
+  /// Rendering
+
   renderVideoSegment() {}
 
   renderSegment(segment, options={}) {
@@ -101,3 +109,36 @@ module.exports = class Renderer {
     };
   }
 };
+
+function compareScheduledUnits(scheduledUnitA, scheduledUnitB) {
+  var offsetA = scheduledUnitA.offset || 0;
+  var offsetB = scheduledUnitB.offset || 0;
+
+  return offsetA - offsetB;
+}
+
+// binary search baby
+function getInsertionIndex(arr, element, comparator) {
+  if (arr.length === 0) {
+    return 0;
+  }
+
+  var low = 0;
+  var high = arr.length - 1;
+
+  while (low <= high) {
+    var mid = Math.floor((low + high) / 2);
+    var compareValue = comparator(arr[mid], element);
+    if (compareValue < 0) {
+      low = mid + 1;
+    }
+    else if (compareValue > 0) {
+      high = mid - 1;
+    }
+    else {
+      return mid;
+    }
+  }
+
+  return low;
+}

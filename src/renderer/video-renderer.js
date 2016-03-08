@@ -1,6 +1,7 @@
 
 var path = require('path');
 var Renderer = require('./renderer');
+var ScheduledUnit = require('./scheduled-unit');
 
 module.exports = class VideoRenderer extends Renderer {
   constructor(options) {
@@ -90,9 +91,7 @@ module.exports = class VideoRenderer extends Renderer {
     var scheduledOffset = this.currentOffset + offset;
     var scheduledUnit = new ScheduledUnit(segment, scheduledOffset);
 
-    var units = this.renderStructure.scheduledUnits;
-    var insertionIndex = getInsertionIndex(units, scheduledUnit, compareScheduledUnits);
-    units.splice(insertionIndex, 0, scheduledUnit);
+    this.insertScheduledUnit(scheduledUnit, this.renderStructure.scheduledUnits);
 
     this.lastScheduleTime = new Date();
   }
@@ -111,52 +110,3 @@ module.exports = class VideoRenderer extends Renderer {
     }
   }
 };
-
-class ScheduledUnit {
-  constructor(segment, offset) {
-    this.segment = segment;
-    this.offset = offset;
-  }
-
-  toString() {
-    return `${Math.round(this.offset * 100) / 100}: ${this.segment.simpleName()}`;
-  }
-}
-
-function compareScheduledUnits(scheduledUnitA, scheduledUnitB) {
-  if (scheduledUnitA.offset < scheduledUnitB.offset) {
-    return -1;
-  }
-  else if (scheduledUnitA.offset > scheduledUnitB.offset) {
-    return 1;
-  }
-  else {
-    return 0;
-  }
-}
-
-// binary search baby
-function getInsertionIndex(arr, element, comparator) {
-  if (arr.length === 0) {
-    return 0;
-  }
-
-  var low = 0;
-  var high = arr.length - 1;
-
-  while (low <= high) {
-    var mid = Math.floor((low + high) / 2);
-    var compareValue = comparator(arr[mid], element);
-    if (compareValue < 0) {
-      low = mid + 1;
-    }
-    else if (compareValue > 0) {
-      high = mid - 1;
-    }
-    else {
-      return mid;
-    }
-  }
-
-  return low;
-}

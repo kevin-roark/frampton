@@ -1,5 +1,6 @@
 
 var Renderer = require('./renderer');
+var ScheduledUnit = require('./scheduled-unit');
 
 var TimePerFrame = 16.67;
 
@@ -26,7 +27,7 @@ module.exports = class WebRenderer extends Renderer {
     this.update(); // get the loop going
   }
 
-  /// Runloop
+  /// Scheduling
 
   update() {
     window.requestAnimationFrame(this.update.bind(this));
@@ -36,27 +37,37 @@ module.exports = class WebRenderer extends Renderer {
 
     var timeToLoad = this.timeToLoadVideo + TimePerFrame;
 
-    for (var i = this.scheduledRenders.length - 1; i >= 0; i--) {
-      var scheduledRender = this.scheduledRenders[i];
-      var timeUntilStart = scheduledRender.time - now;
+    var scheduledRenders = this.scheduledRenders;
+    var renderedCount = 0;
+
+    for (var i = 0; i < scheduledRenders.length; i++) {
+      var scheduledRender = scheduledRenders[i];
+      var timeUntilStart = scheduledRender.offset - now;
 
       if (timeUntilStart < timeToLoad) {
-        // start to render, and pop it off
+        // start to render, and mark for removal
         this.renderSegment(scheduledRender.segment, {offset: Math.max(timeUntilStart, 0)});
-        this.scheduledRenders.splice(i, 1);
+        renderedCount += 1;
       }
+      else {
+        break; // because we sort by offset, we can break early
+      }
+    }
+
+    // remove used-up units
+    if (renderedCount > 0) {
+      scheduledRenders.splice(0, renderedCount);
     }
   }
 
-  /// Rendering
-
   scheduleSegmentRender(segment, delay) {
-    var when = window.performance.now() + delay;
-    this.scheduledRenders.push({
-      segment: segment,
-      time: when
-    });
+    var offset = window.performance.now() + delay;
+    var unit = new ScheduledUnit(segment, offset);
+
+    this.insertScheduledUnit(unit, this.scheduledRenders);
   }
+
+  /// Rendering
 
   renderVideoSegment(segment, {offset=0}) {
     var self = this;
