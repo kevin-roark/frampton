@@ -17,20 +17,12 @@ module.exports.frequencyWeightedMedia = function(media) {
   return util.shuffle(weightedMedia);
 };
 
-module.exports.durationSortedMedia = function(media) {
+module.exports.durationSortedMedia = function(media, descending) {
   return _mediaSortedWithComparator(media, function(mediaA, mediaB) {
     var durationA = mediaA.duration || 0;
     var durationB = mediaB.duration || 0;
 
-    if (durationA < durationB) {
-      return -1;
-    }
-    else if (durationA > durationB) {
-      return 1;
-    }
-    else {
-      return 0;
-    }
+    return descending ? durationB - durationA : durationA - durationB;
   });
 };
 

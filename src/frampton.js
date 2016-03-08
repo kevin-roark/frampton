@@ -10,5 +10,7 @@ module.exports = {
   VideoRenderer: require('./renderer/video-renderer'),
   WebRenderer: require('./renderer/web-renderer'),
 
+  tagger: require('./tagger'),
+  mediaArranger: require('./media-arranger'),
   util: require('./util')
 };
