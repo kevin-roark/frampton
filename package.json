@@ -24,6 +24,7 @@
     "ncp": "^2.0.0",
     "node-ffprobe": "^1.2.2",
     "subtitle": "^0.1.1",
+    "tween.js": "^16.3.4",
     "uglifyify": "^3.0.1"
   }
 }

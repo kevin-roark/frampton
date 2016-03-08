@@ -4,6 +4,7 @@ module.exports = class Renderer {
     this.mediaConfig = options.mediaConfig;
     this.outputFilepath = options.outputFilepath !== undefined ? options.outputFilepath : './out/';
     this.log = options.log || false;
+    this.audioFadeDuration = options.audioFadeDuration;
 
     if (this.log) {
       console.log('frampton is starting now...');

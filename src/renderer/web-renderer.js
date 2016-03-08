@@ -1,4 +1,5 @@
 
+var TWEEN = require('tween.js');
 var Renderer = require('./renderer');
 var ScheduledUnit = require('./scheduled-unit');
 
@@ -22,21 +23,20 @@ module.exports = class WebRenderer extends Renderer {
     this.videosPlayed = 0;
     this.meanStartDelay = 0;
 
-    this.startTime = window.performance.now();
-    this.lastUpdateTime = this.startTime;
+    this.lastUpdateTime = 0;
     this.update(); // get the loop going
   }
 
   /// Scheduling
 
-  update() {
+  update(totalTime) {
     window.requestAnimationFrame(this.update.bind(this));
+    TWEEN.update(totalTime);
 
     var now = window.performance.now();
     this.lastUpdateTime = now;
 
     var timeToLoad = this.timeToLoadVideo + TimePerFrame;
-
     var scheduledRenders = this.scheduledRenders;
     var renderedCount = 0;
 
@@ -92,12 +92,14 @@ module.exports = class WebRenderer extends Renderer {
     video.style.display = 'none';
     this.domContainer.appendChild(video);
 
+    var segmentDuration = segment.msDuration();
     var expectedStart = window.performance.now() + offset;
+
     video.addEventListener('playing', function() {
       var now = window.performance.now();
       var startDelay = now + self.startPerceptionCorrection - expectedStart;
 
-      var endTimeout = segment.msDuration();
+      var endTimeout = segmentDuration;
       if (startDelay > self.startPerceptionCorrection) {
         endTimeout -= startDelay;
       }
@@ -122,7 +124,7 @@ module.exports = class WebRenderer extends Renderer {
       }
 
       if (self.log) {
-        console.log(`${now}: start ${filename} | duration ${segment.msDuration()} | start delay ${startDelay}`);
+        console.log(`${now}: start ${filename} | duration ${segmentDuration} | start delay ${startDelay}`);
         console.log(`start correction ${self.startDelayCorrection} | mean delay ${self.meanStartDelay}`);
       }
     }, false);
@@ -133,8 +135,27 @@ module.exports = class WebRenderer extends Renderer {
       video.play();
 
       video.style.display = displayStyle;
+
       if (segment.opacity !== 1.0) {
         video.style.opacity = segment.opacity;
+      }
+
+      if (self.audioFadeDuration) {
+        var fadeDuration = Math.min(self.audioFadeDuration, segmentDuration / 2);
+        console.log(fadeDuration);
+
+        // fade in
+        video.volume = 0;
+        new TWEEN.Tween(video)
+          .to({volume: 1}, fadeDuration)
+          .start();
+
+        setTimeout(function() {
+          // fade out
+          new TWEEN.Tween(video)
+            .to({volume: 0}, fadeDuration)
+            .start();
+        }, segmentDuration - fadeDuration);
       }
 
       segment.didStart();
@@ -143,7 +164,7 @@ module.exports = class WebRenderer extends Renderer {
     function end() {
       if (self.log) {
         var now = window.performance.now();
-        var expectedEnd = expectedStart + segment.msDuration();
+        var expectedEnd = expectedStart + segmentDuration;
         console.log(`${now}: finish ${filename} | end delay: ${now - expectedEnd}`);
       }
 
@@ -151,7 +172,7 @@ module.exports = class WebRenderer extends Renderer {
         video.pause();
         video.currentTime = segment.startTime;
         video.play();
-        setTimeout(end, segment.msDuration());
+        setTimeout(end, segmentDuration);
       }
       else {
         video.parentNode.removeChild(video);
@@ -160,5 +181,4 @@ module.exports = class WebRenderer extends Renderer {
       }
     }
   }
-
 };
