@@ -12,7 +12,7 @@ if (args.length === 0) {
 }
 
 var videoDirectory = args[0];
-var outputDirectory = videoDirectory + '-converted';
+var outputDirectory = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : videoDirectory + '-converted';
 var makeWebm = args.indexOf('--webm') > 0;
 
 if (!fs.existsSync(outputDirectory)){
