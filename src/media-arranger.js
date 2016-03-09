@@ -1,7 +1,7 @@
 
 var util = require('./util');
 
-module.exports.frequencyWeightedMedia = function(media) {
+module.exports.frequencyWeightedMedia = (media) => {
   if (!media) return [];
 
   var weightedMedia = [];
@@ -17,12 +17,23 @@ module.exports.frequencyWeightedMedia = function(media) {
   return util.shuffle(weightedMedia);
 };
 
-module.exports.durationSortedMedia = function(media, descending) {
+module.exports.durationSortedMedia = (media, descending) => {
   return _mediaSortedWithComparator(media, function(mediaA, mediaB) {
     var durationA = mediaA.duration || 0;
     var durationB = mediaB.duration || 0;
 
     return descending ? durationB - durationA : durationA - durationB;
+  });
+};
+
+module.exports.volumeSortedMedia = (media, options={}) => {
+  var descending = options.descending || false;
+  var useMax = options.useMax || false;
+  return _mediaSortedWithComparator(media, function(mediaA, mediaB) {
+    var volumeA = mediaA.volume ? (useMax ? mediaA.volume.max : mediaA.volume.mean) : -20;
+    var volumeB = mediaB.volume ? (useMax ? mediaB.volume.max : mediaB.volume.mean) : -20;
+
+    return descending ? volumeB - volumeA : volumeA - volumeB;
   });
 };
 
