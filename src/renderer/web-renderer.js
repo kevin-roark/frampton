@@ -2,6 +2,7 @@
 var TWEEN = require('tween.js');
 var Renderer = require('./renderer');
 var ScheduledUnit = require('./scheduled-unit');
+var dahmer = require('./dahmer');
 
 var TimePerFrame = 16.67;
 
@@ -136,25 +137,46 @@ module.exports = class WebRenderer extends Renderer {
 
       video.style.display = displayStyle;
 
-      if (segment.opacity !== 1.0) {
-        video.style.opacity = segment.opacity;
+      var videoFadeDuration = segment.videoFadeDuration || self.videoFadeDuration;
+      if (videoFadeDuration) {
+        videoFadeDuration = Math.min(videoFadeDuration, segmentDuration / 2);
+
+        video.style.opacity = 0;
+        var transition = 'opacity ' + videoFadeDuration + 'ms';
+        dahmer.setTransition(video, transition);
+
+        // fade in
+        setTimeout(function() {
+          video.style.opacity = segment.opacity;
+        }, 1);
+
+        // fade out
+        setTimeout(function() {
+          video.style.opacity = 0;
+        }, segmentDuration - videoFadeDuration);
+      }
+      else {
+        if (segment.opacity !== 1.0) {
+          video.style.opacity = segment.opacity;
+        }
       }
 
-      if (self.audioFadeDuration) {
-        var fadeDuration = Math.min(self.audioFadeDuration, segmentDuration / 2);
+      var audioFadeDuration = segment.audioFadeDuration || self.audioFadeDuration;
+      if (audioFadeDuration) {
+        audioFadeDuration = Math.min(audioFadeDuration, segmentDuration / 2);
 
         // fade in
         video.volume = 0;
         new TWEEN.Tween(video)
-          .to({volume: 1}, fadeDuration)
+          .to({volume: 1}, audioFadeDuration)
           .start();
 
         setTimeout(function() {
           // fade out
           new TWEEN.Tween(video)
-            .to({volume: 0}, fadeDuration)
+            .to({volume: 0}, audioFadeDuration)
             .start();
-        }, segmentDuration - fadeDuration);
+        }, segmentDuration - audioFadeDuration);
       }
 
       segment.didStart();

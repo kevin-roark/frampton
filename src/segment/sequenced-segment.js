@@ -7,6 +7,7 @@ module.exports = class SequencedSegment extends Segment {
 
     this.segmentType = 'sequence';
     this.segments = options.segments || [];
+    this.videoOffset = options.videoOffset || 0;
   }
 
   copy(sequencedSegment, recursive) {
@@ -36,11 +37,18 @@ module.exports = class SequencedSegment extends Segment {
   }
 
   getDuration() {
-    var duration = 0;
-    for (var i = 0; i < this.segments.length; i++) {
-      duration += this.segments[i].getDuration();
+    var offset = 0;
+    for (var i = 0; i < this.segments.length - 1; i++) {
+      offset += (this.segments[i].getDuration() - this.videoOffset);
     }
+
+    var duration = offset + this.segments[this.segments.length - 1].getDuration();
+
     return duration;
+  }
+
+  msVideoOffset() {
+    return this.videoOffset * 1000;
   }
 
 };

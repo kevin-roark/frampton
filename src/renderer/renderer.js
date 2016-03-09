@@ -5,6 +5,7 @@ module.exports = class Renderer {
     this.outputFilepath = options.outputFilepath !== undefined ? options.outputFilepath : './out/';
     this.log = options.log || false;
     this.audioFadeDuration = options.audioFadeDuration;
+    this.videoFadeDuration = options.videoFadeDuration;
 
     if (this.log) {
       console.log('frampton is starting now...');
@@ -47,7 +48,7 @@ module.exports = class Renderer {
   renderSequencedSegment(sequenceSegment, {offset=0}) {
     sequenceSegment.segments.forEach((segment, idx) => {
       this.scheduleSegmentRender(segment, offset);
-      offset += segment.msDuration();
+      offset += (segment.msDuration() + sequenceSegment.msVideoOffset());
 
       if (idx === 0) {
         this.overrideOnStart(segment, () => {

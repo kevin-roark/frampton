@@ -21,6 +21,8 @@ module.exports = class VideoSegment extends Segment {
     this.width = options.width;
     this.top = options.top;
     this.left = options.left;
+    this.audioFadeDuration = options.audioFadeDuration || 0;
+    this.videoFadeDuration = options.videoFadeDuration || 0;
   }
 
   copy(videoSegment) {
@@ -36,6 +38,8 @@ module.exports = class VideoSegment extends Segment {
     this.width = videoSegment.width;
     this.left = videoSegment.left;
     this.top = videoSegment.top;
+    this.audioFadeDuration = videoSegment.audioFadeDuration;
+    this.videoFadeDuration = videoSegment.videoFadeDuration;
 
     return this;
   }
