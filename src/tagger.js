@@ -1,7 +1,7 @@
 
 var util = require('./util');
 
-export class Tagger {
+module.exports = class Tagger {
   constructor(mediaConfig) {
     this.mediaConfig = mediaConfig;
 
@@ -83,6 +83,18 @@ export class Tagger {
     return util.choice(videos);
   }
 
+  videoSequenceFromTagSequence(tagSequence) {
+    var videos = [];
+    for (var i = 0; i < tagSequence.length; i++) {
+      var tag = tagSequence[i];
+      var video = this.randomVideoWithTag(tag);
+      if (video) {
+        videos.push(video);
+      }
+    }
+    return videos;
+  }
+
   videoHasTag(video, tag) {
     if (!video) return false;
 
@@ -119,32 +131,36 @@ export class Tagger {
       var video = videos[i];
       var duration = video.duration;
 
-      var tag;
       if (duration < 0.3) {
-        tag = 'short1';
+        video.tags.push('short');
+        video.tags.push('short1');
       }
       else if (duration < 1.0) {
-        tag = 'short2';
+        video.tags.push('short');
+        video.tags.push('short2');
       }
       else if (duration < 3.0) {
-        tag = 'med1';
+        video.tags.push('med');
+        video.tags.push('med1');
       }
       else if (duration < 5.0) {
-        tag = 'med2';
+        video.tags.push('med');
+        video.tags.push('med2');
       }
       else if (duration < 10.0) {
-        tag = 'long1';
+        video.tags.push('long');
+        video.tags.push('long1');
       }
       else if (duration < 30.0) {
-        tag = 'long2';
+        video.tags.push('long');
+        video.tags.push('long2');
       }
       else {
-        tag = 'long3';
+        video.tags.push('long');
+        video.tags.push('long3');
       }
-
-      video.tags.push(tag);
     }
 
     this.buildTagMap();
   }
-}
+};

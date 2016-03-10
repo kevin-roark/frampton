@@ -9,7 +9,7 @@ module.exports = {
   Renderer: require('./renderer/renderer'),
   VideoRenderer: require('./renderer/video-renderer'),
 
-  tagger: require('./tagger'),
+  Tagger: require('./tagger'),
   mediaArranger: require('./media-arranger'),
   util: require('./util')
 };
