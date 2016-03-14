@@ -31,13 +31,13 @@ function segmentVideo(file) {
   run(segmentCommand, function() {
     var shotSplitterPath = path.join(__dirname, 'shot-splitter.js');
     var srtPath = `${videoPath}_shots.srt`;
-    var outPath = path.join(mediaPath, 'split-videos');
+    var outPath = path.join(mediaPath, `${file}`);
 
-    var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag}  `;
+    var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag}`;
     if (splitShots){
       run(shotSplitCommand);
     }
-    
+
   });
 }
 
