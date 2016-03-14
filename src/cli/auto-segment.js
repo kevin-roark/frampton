@@ -2,11 +2,9 @@
 
 var fs = require('fs');
 var path = require('path');
-var Subtitle = require('subtitle');
 var exec = require('child_process').exec;
 
 var args = process.argv.slice(2);
-
 
 var mediaPath = args.length > 0 ? args[0] : './media';
 
@@ -31,11 +29,8 @@ function segmentVideo(file) {
   var videoPath = path.join(config.path, file);
 
   var command = `video_segmentation ${videoPath}`;
-
   run(command);
-
 }
-
 
 function run(command) {
   if (commandsRunning > 1) {
