@@ -7,6 +7,10 @@ var exec = require('child_process').exec;
 var args = process.argv.slice(2);
 
 var mediaPath = args.length > 0 ? args[0] : './media';
+var splitShots = args.indexOf('--split') > 0;
+var startFlag = args.indexOf('--start') > 0 ? parseFloat(args[args.indexOf('--start') + 1]) : 2; // values less than 2 trim the begining
+var endFlag = args.indexOf('--end') > 0 ? parseFloat(args[args.indexOf('--end') + 1]) : 2; // values less than 2 trim the end
+
 
 var commandsRunning = 0;
 var commandQueue = [];
@@ -29,8 +33,11 @@ function segmentVideo(file) {
     var srtPath = `${videoPath}_shots.srt`;
     var outPath = path.join(mediaPath, 'split-videos');
 
-    var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath}`;
-    run(shotSplitCommand);
+    var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag}  `;
+    if (splitShots){
+      run(shotSplitCommand);
+    }
+    
   });
 }
 
