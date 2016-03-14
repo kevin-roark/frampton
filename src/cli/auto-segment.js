@@ -3,6 +3,7 @@
 var fs = require('fs');
 var path = require('path');
 var exec = require('child_process').exec;
+var filesInPath = require('./files-in-path');
 
 var args = process.argv.slice(2);
 
@@ -18,12 +19,13 @@ var commandQueue = [];
 
 var files = filesInPath(mediaPath);
 
-files.forEach(function(file) {
-  if (path.extname(file) === '.mp4') {
-    segmentVideo(file);
-  }
-});
-
+if (!splitOnly) {
+  files.forEach(function(file) {
+    if (path.extname(file) === '.mp4') {
+      segmentVideo(file);
+    }
+  });
+}
 
 files.forEach(function(file) {
   if (path.extname(file) === '.mp4') {
@@ -33,22 +35,23 @@ files.forEach(function(file) {
 
 
 function segmentVideo(file) {
-  var videoPath = path.join(mediaPath, file)
+  var videoPath = path.join(mediaPath, file);
   var segmentCommand = `video_segmentation ${videoPath}`;
-  if(splitOnly){segmentCommand = ''; }
   run(segmentCommand);
 }
 
 function splitVideo(file) {
-  var videoPath = path.join(mediaPath, file)
+  var videoPath = path.join(mediaPath, file);
   var shotSplitterPath = path.join(__dirname, 'shot-splitter.js');
   var srtPath = videoPath.substr(0, videoPath.lastIndexOf(".")) +  '_shots.srt';
   var outPath = path.join(mediaPath, 'split-scenes', file.substr(0, file.lastIndexOf(".")));
-  var makeDirectoryCommand = `md ${outPath}`;
   var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag}`;
 
-  if (splitShots || splitOnly){
-    run(makeDirectoryCommand);
+  if (splitShots || splitOnly) {
+    if (!fs.existsSync(outPath)){
+      fs.mkdirSync(outPath);
+    }
+
     run(shotSplitCommand);
   }
 }
@@ -76,22 +79,4 @@ function run(command, callback) {
       callback();
     }
   });
-}
-
-function filesInPath(dir) {
-  var files = [];
-
-  fs.readdirSync(dir).forEach(function(file) {
-      var filepath = path.join(dir, file);
-
-      var stat = fs.statSync(filepath);
-      if (stat && stat.isDirectory()) {
-          files = files.concat(filesInPath(filepath));
-      }
-      else {
-        files.push(file);
-      }
-  });
-
-  return files;
 }

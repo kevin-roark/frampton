@@ -3,6 +3,7 @@
 var fs = require('fs');
 var path = require('path');
 var execSync = require('child_process').execSync;
+var filesInPath = require('./files-in-path');
 
 var args = process.argv.slice(2);
 
@@ -47,24 +48,6 @@ function writeToFile() {
   var jsonConfig = JSON.stringify(config);
   fs.writeFileSync(outputFilepath, jsonConfig);
   console.log(`generated config at ${outputFilepath}`);
-}
-
-function filesInPath(dir) {
-  var files = [];
-
-  fs.readdirSync(dir).forEach(function(file) {
-      var filepath = path.join(dir, file);
-
-      var stat = fs.statSync(filepath);
-      if (stat && stat.isDirectory()) {
-          files = files.concat(filesInPath(filepath));
-      }
-      else {
-        files.push(file);
-      }
-  });
-
-  return files;
 }
 
 function getDuration(videoPath) {

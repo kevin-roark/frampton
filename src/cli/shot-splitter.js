@@ -20,7 +20,7 @@ var videoFilepath = args[1];
 var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : './out';
 var fps = args.indexOf('--fps') > 0 ? parseFloat(args[args.indexOf('--fps') + 1]) : 24;
 var cutForPremiere = args.indexOf('--premiere') > 0;
-var offset = args.indexOf('--offset') > 0 ? parseFloat(argcs[args.indexOf('--offset') + 1]) : 0;
+var offset = args.indexOf('--offset') > 0 ? parseFloat(args[args.indexOf('--offset') + 1]) : 0;
 var firstIdxMultiplier = args.indexOf('--start') > 0 ? parseFloat(args[args.indexOf('--start') + 1]) : 2; // values less than 2 trim the begining
 var lastIdxMultiplier = args.indexOf('--end') > 0 ? parseFloat(args[args.indexOf('--end') + 1]) : 2; // values less than 2 trim the end
 
@@ -41,14 +41,12 @@ var lastIdx = shotDataArray.length - 1;
 var msPerFrame = 41;
 var startMultiplier = cutForPremiere ? 3 : 2;
 var normalMultiplier = cutForPremiere ? 2 : 1;
-var durationMultiplier;
 
-if(cutForPremiere){
+if (cutForPremiere) {
   lastIdxMultiplier = 3;
 }
 
 shotData.forEach(function(shot, idx) {
-
   var outfile = path.join(outputFilepath, `${shot.index}.mp4`);
 
   var start, duration;
@@ -57,7 +55,7 @@ shotData.forEach(function(shot, idx) {
     duration = (shot.duration) / 1000;
   }
   else if (idx === 1) {
-    start = (shot.start - ((startMultiplier )  * msPerFrame))  / 1000;
+    start = (shot.start - (startMultiplier  * msPerFrame))  / 1000;
     duration = (shot.duration + (2 * msPerFrame)) / 1000;
   }
   else if (idx === lastIdx) {

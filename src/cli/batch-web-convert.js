@@ -3,6 +3,7 @@
 var fs = require('fs');
 var path = require('path');
 var exec = require('child_process').exec;
+var filesInPath = require('./files-in-path');
 
 var args = process.argv.slice(2);
 
@@ -74,22 +75,4 @@ function convertVideo(file) {
       }
     }
   });
-}
-
-function filesInPath(dir) {
-  var files = [];
-
-  fs.readdirSync(dir).forEach(function(file) {
-      var filepath = path.join(dir, file);
-
-      var stat = fs.statSync(filepath);
-      if (stat && stat.isDirectory()) {
-          files = files.concat(filesInPath(filepath));
-      }
-      else {
-        files.push(file);
-      }
-  });
-
-  return files;
 }
