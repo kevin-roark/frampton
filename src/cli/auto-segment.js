@@ -30,12 +30,12 @@ function segmentVideo(file) {
   var segmentCommand = `video_segmentation ${videoPath}`;
   run(segmentCommand, function() {
     var shotSplitterPath = path.join(__dirname, 'shot-splitter.js');
-    var srtPath = videoPath.substr(0, file.lastIndexOf(".")) +  '_shots.srt';
-    console.log(srtPath);
-    var outPath = path.join(mediaPath, `${file}`);
-
+    var srtPath = videoPath.substr(0, videoPath.lastIndexOf(".")) +  '_shots.srt';
+    var outPath = path.join(mediaPath, file.substr(0, file.lastIndexOf(".")));
+    var makeDirectoryCommand = `md ${outPath}`;
     var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag}`;
     if (splitShots){
+      run(makeDirectoryCommand);
       run(shotSplitCommand);
     }
 
