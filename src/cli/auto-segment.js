@@ -30,7 +30,9 @@ function segmentVideo(file) {
   var segmentCommand = `video_segmentation ${videoPath}`;
   run(segmentCommand, function() {
     var shotSplitterPath = path.join(__dirname, 'shot-splitter.js');
-    var srtPath = `${videoPath}_shots.srt`;
+    var srtPath = videoPath.replace(/\.[^/.]+$/, "");
+    var srtPath = path.join(srtPath, '_shots.srt');
+    console.log(srtPath);
     var outPath = path.join(mediaPath, `${file}`);
 
     var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag}`;
