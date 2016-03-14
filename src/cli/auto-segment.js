@@ -26,7 +26,7 @@ function segmentVideo(file) {
   var segmentCommand = `video_segmentation ${videoPath}`;
   run(segmentCommand, function() {
     var shotSplitterPath = path.join(__dirname, 'shot-splitter.js');
-    var srtPath = ''; // TODO: I don't know because I don't know what video_segmentation produces :/
+    var srtPath = `${videoPath}_shots.srt`;
     var outPath = path.join(mediaPath, 'split-videos');
 
     var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath}`;
