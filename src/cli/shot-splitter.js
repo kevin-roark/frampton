@@ -46,70 +46,63 @@ var msPerFrame = 41;
 var startMultiplier = cutForPremiere ? 3 : 2;
 var normalMultiplier = cutForPremiere ? 2 : 1;
 
-var videoHandleMs = videoHandleLength * 1000;
-var audioHandleMs = audioHandleLength * 1000;
-
-
 if (cutForPremiere) {
   lastIdxMultiplier = 3;
 }
 
-if (!fs.existsSync(outputFilepath)){
-      fs.mkdirSync(outputFilepath);
-    }
+if (!fs.existsSync(outputFilepath)) {
+  fs.mkdirSync(outputFilepath);
+}
 
 shotData.forEach(function(shot, idx) {
-  var outfile = path.join(outputFilepath, `${shot.index}.mp4`);
-
-  var start, duration;
+  var start, videoStart, audioStart, duration, videoDuration, audioDuration;
   if (idx === 0) {
     start = (shot.start - (firstIdxMultiplier * msPerFrame))  / 1000;
-    duration = (shot.duration + videoHandleMs) / 1000;
-    var firstShotDuration = shot.duration;
-    var firstVideoHandle = Math.min(firstShotDuration, videoHandleMs);
+    videoStart = start;
+    audioStart = start;
+
+    duration = shot.duration / 1000;
+    videoDuration = duration + videoHandleLength;
+    audioDuration = duration + audioHandleLength;
   }
   else if (idx === 1) {
-    start = (shot.start - (startMultiplier  * msPerFrame) - videoHandleMs)  / 1000;
-    duration = (shot.duration + (2 * msPerFrame) + (2 * videoHandleMs)) / 1000;
+    start = (shot.start - (startMultiplier  * msPerFrame))  / 1000;
+    videoStart = start - videoHandleLength;
+
+    duration = (shot.duration + (2 * msPerFrame)) / 1000;
+    videoDuration = duration + videoHandleLength * 2;
+    audioDuration = duration + audioHandleLength * 2;
   }
   else if (idx === lastIdx) {
-    start = (shot.start - (startMultiplier * msPerFrame) - videoHandleMs)  / 1000;
-    duration = (shot.duration + (lastIdxMultiplier * msPerFrame) + (2 * videoHandleMs)) / 1000; //premiere value is 3
+    start = (shot.start - (startMultiplier * msPerFrame))  / 1000;
+    videoStart = start - videoHandleLength;
+    audioStart = start - audioHandleLength;
+
+    duration = (shot.duration + (lastIdxMultiplier * msPerFrame)) / 1000; // premiere value is 3
+    videoDuration = duration + videoHandleLength;
+    audioDuration = duration + audioHandleLength;
   }
   else {
-    start = Math.max(0, (shot.start - (startMultiplier * msPerFrame) - videoHandleMs) / 1000);
-    duration = (shot.duration + (normalMultiplier * msPerFrame) + (2 * videoHandleMs)) / 1000; //premiere value is 2
+    start = Math.max(0, (shot.start - (startMultiplier * msPerFrame)) / 1000);
+    videoStart = Math.max(0, start - videoHandleLength);
+    audioStart = Math.max(0, start - audioHandleLength);
+
+    duration = (shot.duration + (normalMultiplier * msPerFrame)) / 1000; // premiere value is 2
+    videoDuration = duration + 2 * videoHandleLength;
+    audioDuration = duration + 2 * audioHandleLength;
   }
 
-  var command = `ffmpeg -ss ${start} -t ${duration} -i ${videoFilepath} -c:v libx264 ${outfile}`;
-  if(!noVideo){run(command);}
-});
-
-shotData.forEach(function(shot, idx) {
-  var outfile = path.join(outputFilepath, `${shot.index}.aac`);
-
-  var start, duration;
-  if (idx === 0) {
-    start = (shot.start - (firstIdxMultiplier * msPerFrame))  / 1000;
-    duration = (shot.duration + audioHandleMs) / 1000;
-    var firstShotDuration = shot.duration;
-    var firstAudioHandle = Math.min(firstShotDuration, audioHandleMs);
-  }
-  else if (idx === 1) {
-    start = (shot.start - (startMultiplier  * msPerFrame) - audioHandleMs)  / 1000;
-    duration = (shot.duration + (2 * msPerFrame) + (2 * audioHandleMs)) / 1000;
-  }
-  else if (idx === lastIdx) {
-    start = (shot.start - (startMultiplier * msPerFrame) - audioHandleMs)  / 1000;
-    duration = (shot.duration + (lastIdxMultiplier * msPerFrame) + (2 * audioHandleMs)) / 1000; //premiere value is 3
-  }
-  else {
-    start = Math.max(0, (shot.start - (startMultiplier * msPerFrame) - audioHandleMs) / 1000);
-    duration = (shot.duration + (normalMultiplier * msPerFrame) + (2 * audioHandleMs)) / 1000; //premiere value is 2
+  if (!noVideo) {
+    var videoOutfile = path.join(outputFilepath, `${shot.index}.mp4`);
+    var videoCommand = `ffmpeg -ss ${videoStart} -t ${videoDuration} -i ${videoFilepath} -c:v libx264 ${videoOutfile}`;
+    run(videoCommand);
   }
 
-  var command = `ffmpeg -ss ${start} -t ${duration} -i ${videoFilepath} -vn ${outfile}`;
-  if(seperateAudio){run(command);}
+  if (seperateAudio) {
+    var audioOutfile = path.join(outputFilepath, `${shot.index}.aac`);
+    var audioCommand = `ffmpeg -ss ${audioStart} -t ${audioDuration} -i ${videoFilepath} -vn ${audioOutfile}`;
+    run(audioCommand);
+  }
 });
 
 function run(command) {
