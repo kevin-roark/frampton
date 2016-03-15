@@ -9,7 +9,7 @@ module.exports = class VideoRenderer extends Renderer {
   constructor(options) {
     super(options);
 
-    this.maxVideoDuration = options.maxVideoDuration || 60 * 1000 * 1; // 1 minute
+    this.maxVideoDuration = options.maxVideoDuration || 60 * 1000 * 15; // 15 minutes
     this.enforceHardDurationLimit = options.enforceHardDurationLimit !== undefined ? options.enforceHardDurationLimit : true;
 
     this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : (filename) => {

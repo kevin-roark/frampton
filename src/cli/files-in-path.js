@@ -2,7 +2,7 @@
 var fs = require('fs');
 var path = require('path');
 
-function filesInPath(dir) {
+function filesInPath(dir, fullPath) {
   var files = [];
 
   fs.readdirSync(dir).forEach(function(file) {
@@ -13,7 +13,12 @@ function filesInPath(dir) {
           files = files.concat(filesInPath(filepath));
       }
       else {
-        files.push(file);
+        if (fullPath) {
+          files.push(filepath);
+        }
+        else {
+          files.push(file);
+        }
       }
   });
 
