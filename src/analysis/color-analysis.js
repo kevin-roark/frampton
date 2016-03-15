@@ -3,6 +3,7 @@ var fs = require('fs');
 var path = require('path');
 var execSync = require('child_process').execSync;
 var ColorThief = require('color-thief');
+var rimraf = require('rimraf');
 var filesInPath = require('../cli/files-in-path');
 
 var colorThief = new ColorThief();
@@ -28,11 +29,14 @@ function getVideoColors(video, options={}) {
   }
 
   function split(start, splitDuration) {
-    var images = _splitVideoIntoFrames(video, {start: start, duration: splitDuration});
-    images.forEach((image) => {
+    var {directory, files} = _splitVideoIntoFrames(video, {start: start, duration: splitDuration});
+
+    files.forEach((image) => {
       var color = getImageColor(image, options);
       colors.push(color);
     });
+
+    rimraf(directory);
   }
 
   return colors;
@@ -69,7 +73,10 @@ function _splitVideoIntoFrames(video, options={}) {
   var command = `ffmpeg -ss ${start} -t ${duration} -i ${video} -vf scale=480:-1 ${outFileFormat}`;
   _executeFFMPEGCommand(command);
 
-  return filesInPath(outDirectory, true);
+  return {
+    directory: outDirectory,
+    files: filesInPath(outDirectory, true)
+  };
 }
 
 function _executeFFMPEGCommand(command) {
