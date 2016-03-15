@@ -68,10 +68,18 @@ shotData.forEach(function(shot, idx) {
   else if (idx === 1) {
     start = (shot.start - (startMultiplier  * msPerFrame))  / 1000;
     videoStart = start - videoHandleLength;
-
+    audioStart = start - audioHandleLength;
     duration = (shot.duration + (2 * msPerFrame)) / 1000;
     videoDuration = duration + videoHandleLength * 2;
     audioDuration = duration + audioHandleLength * 2;
+    if(videoStart < 0){
+      videoStart == 0;
+      videoDuration = duration + videoHandleLength + shot.start;
+    }
+    if(audioStart < 0){
+      audioStart == 0;
+      audioDuration = duration + audioHandleLength + shot.start;
+    }
   }
   else if (idx === lastIdx) {
     start = (shot.start - (startMultiplier * msPerFrame))  / 1000;
