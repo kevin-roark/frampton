@@ -5,10 +5,13 @@ var execSync = require('child_process').execSync;
 var ColorThief = require('color-thief');
 var rimraf = require('rimraf');
 var filesInPath = require('../cli/files-in-path');
+var simpleAnalysis = require('./simple-analysis');
 
 var colorThief = new ColorThief();
 
-function getImageColor(image, options={}) {
+function getImageColor(image, options) {
+  if (!options) options = {};
+
   var quality = options.quality || 60;
   var format = options.format || 'default';
 
@@ -17,9 +20,11 @@ function getImageColor(image, options={}) {
   return _convertColorToFormat(color, format);
 }
 
-function getVideoColors(video, options={}) {
+function getVideoColors(video, options) {
+  if (!options) options = {};
+
   var defaultSplitDuration = options.splitDuration || 60;
-  var videoDuration = _getVideoDuration(video);
+  var videoDuration = simpleAnalysis.getVideoDuration(video);
 
   var colors = [];
 
@@ -29,14 +34,14 @@ function getVideoColors(video, options={}) {
   }
 
   function split(start, splitDuration) {
-    var {directory, files} = _splitVideoIntoFrames(video, {start: start, duration: splitDuration});
+    var splitOut = _splitVideoIntoFrames(video, {start: start, duration: splitDuration});
 
-    files.forEach((image) => {
+    splitOut.files.forEach((image) => {
       var color = getImageColor(image, options);
       colors.push(color);
     });
 
-    rimraf(directory);
+    rimraf(splitOut.directory, {disableGlob: true}, function() {});
   }
 
   return colors;
@@ -44,23 +49,20 @@ function getVideoColors(video, options={}) {
 
 function _convertColorToFormat(color, format) {
   switch (format) {
+    case 'object':
+      return {r: color[0], g: color[1], b: color[2]};
+
     case 'array':
-      return [color.r, color.g, color.b];
+      return color;
 
     default:
       return color;
   }
 }
 
-function _getVideoDuration(videoPath) {
-  var mediainfoCommand = `mediainfo --Inform="General;%Duration%" ${videoPath}`;
-  var mediainfoDuration = parseFloat(execSync(mediainfoCommand).toString());
-  var duration = mediainfoDuration / 1000;
+function _splitVideoIntoFrames(video, options) {
+  if (!options) options = {};
 
-  return duration;
-}
-
-function _splitVideoIntoFrames(video, options={}) {
   var start = options.start || 0;
   var duration = options.duration || 60.0;
   var outDirectory = options.outDirectory || path.join(process.cwd(), 'frampton-temp-' + Math.floor(Math.random() * 1000000));
