@@ -3,7 +3,7 @@ A suite of video composition tools. Documentation coming soon.
 
 ## gallery
 
-[feud.online](http://www.feud.online/) by [Carmichael Payamps](http://www.carmichael.xyz)
+[feud.online](http://www.feud.online/) by [Carmichael Payamps](http://www.carmichael.xyz)  
 [Bourne rebourne](http://www.carmichael.xyz/rebourne/) by [Carmichael Payamps](http://www.carmichael.xyz)
 
 ## special notes
