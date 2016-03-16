@@ -20,6 +20,7 @@ module.exports = class WebRenderer extends Renderer {
 
     this.domContainer = document.body;
     this.scheduledRenders = [];
+    this.updateFunctions = [];
 
     this.videosPlayed = 0;
     this.meanStartDelay = 0;
@@ -35,6 +36,7 @@ module.exports = class WebRenderer extends Renderer {
     TWEEN.update(totalTime);
 
     var now = window.performance.now();
+    var timeSinceLastUpdate = now - this.lastUpdateTime;
     this.lastUpdateTime = now;
 
     var timeToLoad = this.timeToLoadVideo + TimePerFrame;
@@ -54,10 +56,37 @@ module.exports = class WebRenderer extends Renderer {
         break; // because we sort by offset, we can break early
       }
     }
-
-    // remove used-up units
     if (renderedCount > 0) {
+      // remove used-up units
       scheduledRenders.splice(0, renderedCount);
+    }
+
+    for (i = 0; i < this.updateFunctions.length; i++) {
+      this.updateFunctions[i].fn(timeSinceLastUpdate);
+    }
+  }
+
+  addUpdateFunction(fn) {
+    var identifier = '' + Math.floor(Math.random() * 1000000000);
+    this.updateFunctions.push({
+      identifier: identifier,
+      fn: fn
+    });
+
+    return identifier;
+  }
+
+  removeUpdateFunctionWithIdentifier(identifier) {
+    var indexOfIdentifier = -1;
+    for (var i = 0; i < this.updateFunctions.length; i++) {
+      if (this.updateFunctions[i].identifier === identifier) {
+        indexOfIdentifier = i;
+        break;
+      }
+    }
+
+    if (indexOfIdentifier >= 0) {
+      this.updateFunctions.splice(indexOfIdentifier, 1);
     }
   }
 
@@ -203,8 +232,90 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
-  renderColorSegment(segment, options) {
+  renderColorSegment(segment, {offset=0}) {
+    var self = this;
 
+    var msPerFrame = segment.msDuration() / segment.numberOfColors();
+
+    var div = document.createElement('div');
+    div.className = 'frampton-video';
+
+    div.style.zIndex = segment.z;
+
+    if (segment.width) { div.style.width = div.style.height = segment.width; }
+    if (segment.top) { div.style.top = segment.top; }
+    if (segment.left) { div.style.left = segment.left; }
+
+    if (segment.transitionBetweenColors) { div.style.transition = `background-color ${Math.floor(msPerFrame*0.75)}ms`; }
+
+    var displayStyle = div.style.display || 'block';
+    div.style.display = 'none';
+    this.domContainer.appendChild(div);
+
+    if (offset > 0) {
+      setTimeout(start, offset);
+    }
+    else {
+      start();
+    }
+
+    function start() {
+      div.style.display = displayStyle;
+
+      if (segment.opacity !== 1.0) {
+        div.style.opacity = segment.opacity;
+      }
+
+      segment.didStart();
+
+      var msPerFrame = segment.msDuration() / segment.numberOfColors();
+      var currentFrameIndex = segment.startTime === 0 ? 0 : Math.floor((segment.startTime * 1000) / msPerFrame);
+      var lastUpdateLeftoverTime = 0;
+
+      updateColorRender(0);
+
+      var fnIdentifier = self.addUpdateFunction(updateColorRender);
+
+      function updateColorRender(timeDelta) {
+        var deltaWithLeftoverTime = timeDelta + lastUpdateLeftoverTime;
+
+        var frames = Math.floor(deltaWithLeftoverTime / msPerFrame);
+        currentFrameIndex += frames;
+
+        lastUpdateLeftoverTime = deltaWithLeftoverTime - frames * msPerFrame;
+
+        if (currentFrameIndex >= segment.numberOfColors()) {
+          if (segment.loop) {
+            currentFrameIndex = currentFrameIndex - segment.numberOfColors();
+          }
+          else {
+            end(fnIdentifier);
+            return;
+          }
+        }
+
+        div.style.backgroundColor = segment.rgb(segment.getColor(currentFrameIndex));
+
+        if (self.log) {
+          console.log(`${window.performance.now()}: displaying frame ${currentFrameIndex} for color segment - ${segment.simpleName()}`);
+        }
+      }
+
+      if (self.log) {
+        console.log(`${window.performance.now()}: started color segment - ${segment.simpleName()}`);
+      }
+    }
+
+    function end(fnIdentifier) {
+      div.parentNode.removeChild(div);
+      segment.cleanup();
+
+      self.removeUpdateFunctionWithIdentifier(fnIdentifier);
+
+      if (self.log) {
+        console.log(`${window.performance.now()}: finished color segment - ${segment.simpleName()}`);
+      }
+    }
   }
 
 };

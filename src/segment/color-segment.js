@@ -8,6 +8,7 @@ module.exports = class ColorSegment extends VisualSegment {
     this.segmentType = 'color';
 
     this.colors = options.colors;
+    this.transitionBetweenColors = options.transitionBetweenColors || false;
   }
 
   copy(colorSegment) {
@@ -27,6 +28,20 @@ module.exports = class ColorSegment extends VisualSegment {
   setColors(colors) {
     this.colors = colors;
     return this;
+  }
+
+  numberOfColors() {
+    return this.colors.length;
+  }
+
+  getColor(index) {
+    return this.colors[index];
+  }
+
+  rgb(color) {
+    if (!color) return 'rgb(0, 0, 0)';
+
+    return 'rgb(' + color[0] + ',' + color[1] + ',' + color[2] + ')';
   }
 
   // Generators

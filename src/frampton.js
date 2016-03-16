@@ -2,6 +2,8 @@
 module.exports = {
   Segment: require('./segment/segment'),
   VideoSegment: require('./segment/video-segment'),
+  ColorSegment: require('./segment/color-segment'),
+
   SequencedSegment: require('./segment/sequenced-segment'),
   StackedSegment: require('./segment/stacked-segment'),
   finiteLoopingSegment: require('./segment/finite-looping-segment'),
