@@ -24,11 +24,16 @@ module.exports = class Renderer {
   /// Rendering
 
   renderVideoSegment() {}
+  renderColorSegment() {}
 
   renderSegment(segment, options={}) {
     switch (segment.segmentType) {
       case 'video':
         this.renderVideoSegment(segment, options);
+        break;
+
+      case 'color':
+        this.renderColorSegment(segment, options);
         break;
 
       case 'sequence':

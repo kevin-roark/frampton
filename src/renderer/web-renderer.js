@@ -202,4 +202,9 @@ module.exports = class WebRenderer extends Renderer {
       }
     }
   }
+
+  renderColorSegment(segment, options) {
+
+  }
+
 };

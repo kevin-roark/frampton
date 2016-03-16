@@ -17,7 +17,7 @@ var outFile = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : 'fra
 var colors = colorAnalysis.getVideoColors(video);
 
 var outJSON = {
-  video: video,
+  filename: video,
   duration: simpleAnalysis.getVideoDuration(video),
   colors: colors
 };
