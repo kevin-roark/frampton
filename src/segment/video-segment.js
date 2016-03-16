@@ -1,26 +1,12 @@
 
-var Segment = require('./segment');
+var VisualSegment = require('./visual-segment');
 
-module.exports = class VideoSegment extends Segment {
+module.exports = class VideoSegment extends VisualSegment {
   constructor(options) {
     super(options);
 
     this.segmentType = 'video';
 
-    // inherent to video
-    this.filename = options.filename;
-    this.videoDuration = options.duration;
-
-    // segment configuration
-    this.startTime = options.startTime || 0;
-    this.duration = this.videoDuration - this.startTime;
-    this.playbackRate = options.playbackRate || 1.0;
-    this.loop = options.loop || false;
-    this.z = options.z || 0;
-    this.opacity = options.opacity || 1.0;
-    this.width = options.width;
-    this.top = options.top;
-    this.left = options.left;
     this.audioFadeDuration = options.audioFadeDuration || 0;
     this.videoFadeDuration = options.videoFadeDuration || 0;
   }
@@ -28,16 +14,6 @@ module.exports = class VideoSegment extends Segment {
   copy(videoSegment) {
     super.copy(videoSegment);
 
-    this.filename = videoSegment.filename;
-    this.videoDuration = videoSegment.videoDuration;
-    this.startTime = videoSegment.startTime;
-    this.duration = videoSegment.duration;
-    this.playbackRate = videoSegment.playbackRate;
-    this.loop = videoSegment.loop;
-    this.z = videoSegment.z;
-    this.width = videoSegment.width;
-    this.left = videoSegment.left;
-    this.top = videoSegment.top;
     this.audioFadeDuration = videoSegment.audioFadeDuration;
     this.videoFadeDuration = videoSegment.videoFadeDuration;
 
@@ -50,30 +26,13 @@ module.exports = class VideoSegment extends Segment {
 
   // Chaining Configuration
 
-  setFilename(filename) {
-    this.filename = filename;
+  setAudioFadeDuration(audioFadeDuration) {
+    this.audioFadeDuration = audioFadeDuration;
     return this;
   }
 
-  setEndTime(endTime) {
-    this.startTime = endTime - this.duration;
-    return this;
-  }
-
-  setStartTime(startTime) {
-    this.startTime = startTime;
-    this.duration = Math.min(this.duration, this.videoDuration - startTime);
-    return this;
-  }
-
-  setDuration(duration, startAtEnd) {
-    this.duration = Math.min(duration, this.videoDuration);
-
-    var maximalStartTime = this.videoDuration - this.duration;
-    if (startAtEnd || this.startTime > maximalStartTime) {
-      this.startTime = maximalStartTime;
-    }
-
+  setVideoFadeDuration(videoFadeDuration) {
+    this.videoFadeDuration = videoFadeDuration;
     return this;
   }
 
@@ -81,26 +40,6 @@ module.exports = class VideoSegment extends Segment {
 
   simpleName() {
     return `video - ${this.filename}`;
-  }
-
-  extensionlessName() {
-    return this.filename.substring(0, this.filename.lastIndexOf('.'));
-  }
-
-  endTime() {
-    return this.startTime + this.duration;
-  }
-
-  getDuration() {
-    return this.duration / this.playbackRate;
-  }
-
-  msStartTime() {
-    return this.startTime * 1000;
-  }
-
-  msEndTime() {
-    return this.endTime() * 1000;
   }
 
 };
