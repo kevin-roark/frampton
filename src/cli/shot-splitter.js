@@ -22,6 +22,7 @@ var fps = args.indexOf('--fps') > 0 ? parseFloat(args[args.indexOf('--fps') + 1]
 var cutForPremiere = args.indexOf('--premiere') > 0;
 var seperateAudio = args.indexOf('--A') > 0;
 var noVideo = args.indexOf('--Vx') > 0;
+var seperateVideo = args.indexOf('--V') > 0;
 var videoHandleLength = args.indexOf('--vh') > 0 ? parseFloat(args[args.indexOf('--vh') + 1]) : 0;
 var audioHandleLength = args.indexOf('--ah') > 0 ? parseFloat(args[args.indexOf('--ah') + 1]) : 0;
 var offset = args.indexOf('--offset') > 0 ? parseFloat(args[args.indexOf('--offset') + 1]) : 0;
@@ -110,6 +111,12 @@ shotData.forEach(function(shot, idx) {
     var audioOutfile = path.join(outputFilepath, `${shot.index}.aac`);
     var audioCommand = `ffmpeg -ss ${audioStart} -t ${audioDuration} -i ${videoFilepath} -vn ${audioOutfile}`;
     run(audioCommand);
+  }
+
+  if(seperateVideo) {
+    var videoOutfile = path.join(outputFilepath, `${shot.index}-v.mp4`);
+    var videoCommand = `ffmpeg -ss ${videoStart} -t ${videoDuration} -i ${videoFilepath} -c copy -an ${videoOutfile}`;
+    run(videoCommand);
   }
 });
 
