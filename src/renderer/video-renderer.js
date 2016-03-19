@@ -163,7 +163,7 @@ module.exports = class VideoRenderer extends Renderer {
       duration = duration / 1000;
 
       // only perform the trim if *strictly* necessary
-      if (start > 0 || duration < unit.segment.videoDuration) {
+      if (start > 0 || duration < unit.segment.mediaDuration) {
         var filename = this.generateVideoFilename();
         var command = `ffmpeg -ss ${start} -t ${duration} -i ${unit.currentFile} -c:v copy ${filename}`;
         this.executeFFMPEGCommand(command);
