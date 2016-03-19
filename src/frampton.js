@@ -3,6 +3,7 @@ module.exports = {
   Segment: require('./segment/segment'),
   VideoSegment: require('./segment/video-segment'),
   ColorSegment: require('./segment/color-segment'),
+  AudioSegment: require('./segment/audio-segment'),
 
   SequencedSegment: require('./segment/sequenced-segment'),
   StackedSegment: require('./segment/stacked-segment'),

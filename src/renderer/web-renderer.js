@@ -325,6 +325,56 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
+  renderAudioSegment(segment, {offset=0}) {
+    var self = this;
+
+    var Context = window.AudioContext || window.webkitAudioContext;
+    var audioContext = new Context();
+    var source = audioContext.createBufferSource();
+
+    var gainNode = audioContext.createGain();
+    gainNode.connect(audioContext.destination);
+
+    gainNode.gain.value = segment.volume;
+    segment.addChangeHandler('volume', function(volume) {
+      gainNode.gain.value = volume;
+    });
+
+    var request = new XMLHttpRequest();
+    request.open('GET', this.videoSourceMaker(segment.filename), true);
+    request.responseType = 'arraybuffer';
+
+    request.onload = function() {
+      var audioData = request.response;
+
+      audioContext.decodeAudioData(audioData,
+        function(buffer) {
+          source.buffer = buffer;
+          source.connect(audioContext.destination);
+
+          source.loop = segment.loop;
+          if (segment.loop) {
+            source.loopStart = segment.startTime;
+            source.loopEnd = segment.endTime();
+          }
+
+          source.playbackRate.value = segment.playbackRate;
+          segment.addChangeHandler('playbackRate', function(playbackRate) {
+            source.playbackRate.value = playbackRate;
+          });
+        },
+        function(e) {
+          if (self.log) {
+            console.log(`audio decoding erorr: ${e.err}`);
+          }
+        });
+    };
+
+    request.send();
+
+    source.start(audioContext.currentTime + offset / 1000, segment.startTime, segment.getDuration());
+  }
+
   /// Rendering Helpers
 
   setVisualSegmentOpacity(segment, el) {
