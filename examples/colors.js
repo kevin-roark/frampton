@@ -5,8 +5,8 @@ var renderer = new frampton.Renderer({
 
 var options = {
   loop: true,
-  transitionBetweenColors: true,
-  playbackRate: 1.0
+  transitionBetweenColors: false,
+  playbackRate: 1
 };
 
 var color = frampton.util.choice(mediaConfig.colors);
@@ -19,3 +19,8 @@ for (var key in color) {
 
 var colorSegment = new frampton.ColorSegment(options);
 renderer.scheduleSegmentRender(colorSegment, 1000);
+
+setTimeout(function() {
+  colorSegment.setPlaybackRate(8);
+  colorSegment.setOpacity(0.5);
+}, 5000);

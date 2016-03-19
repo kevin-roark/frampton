@@ -3,6 +3,7 @@
 var Segment = require('./segment');
 
 /// abstract superclass for Video, Color, Image
+/// Dynamic properties on web: playbackRate, opacity
 module.exports = class VisualSegment extends Segment {
   constructor(options) {
     super(options);
@@ -72,6 +73,22 @@ module.exports = class VisualSegment extends Segment {
     if (startAtEnd || this.startTime > maximalStartTime) {
       this.startTime = maximalStartTime;
     }
+
+    return this;
+  }
+
+  setPlaybackRate(playbackRate) {
+    this.playbackRate = playbackRate;
+
+    this.notifyChangeHandlers('playbackRate', playbackRate);
+
+    return this;
+  }
+
+  setOpacity(opacity) {
+    this.opacity = opacity;
+
+    this.notifyChangeHandlers('opacity', opacity);
 
     return this;
   }

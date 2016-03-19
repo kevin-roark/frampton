@@ -3,6 +3,8 @@ module.exports = class Segment {
   constructor(options) {
     this.onStart = options.onStart;
     this.onComplete = options.onComplete;
+
+    this.changeHandlers = {};
   }
 
   copy(segment) {
@@ -30,6 +32,33 @@ module.exports = class Segment {
       this.onComplete();
       this.onComplete = undefined;
     }
+  }
+
+  /// Change Notification
+
+  addChangeHandler(propertyName, fn) {
+    var handlers = this.getChangeHandlers(propertyName);
+    handlers.push(fn);
+  }
+
+  notifyChangeHandlers(propertyName, value) {
+    var handlers = this.getChangeHandlers(propertyName);
+
+    for (var i = 0; i < handlers.length; i++) {
+      handlers[i](value);
+    }
+  }
+
+  getChangeHandlers(propertyName) {
+    var handlers = this.changeHandlers[propertyName];
+    if (handlers !== undefined) {
+      return handlers;
+    }
+
+    handlers = [];
+    this.changeHandlers[propertyName] = handlers;
+
+    return handlers;
   }
 
   /// Generators

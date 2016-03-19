@@ -116,7 +116,11 @@ module.exports = class WebRenderer extends Renderer {
     if (segment.left) { video.style.left = segment.left; }
 
     video.currentTime = segment.startTime;
+
     video.playbackRate = segment.playbackRate;
+    segment.addChangeHandler('playbackRate', function(playbackRate) {
+      video.playbackRate = playbackRate;
+    });
 
     var displayStyle = video.style.display || 'block';
     video.style.display = 'none';
@@ -185,9 +189,7 @@ module.exports = class WebRenderer extends Renderer {
         }, segmentDuration - videoFadeDuration);
       }
       else {
-        if (segment.opacity !== 1.0) {
-          video.style.opacity = segment.opacity;
-        }
+        self.setVisualSegmentOpacity(segment, video);
       }
 
       var audioFadeDuration = segment.audioFadeDuration || self.audioFadeDuration;
@@ -262,17 +264,18 @@ module.exports = class WebRenderer extends Renderer {
     function start() {
       div.style.display = displayStyle;
 
-      if (segment.opacity !== 1.0) {
-        div.style.opacity = segment.opacity;
-      }
+      self.setVisualSegmentOpacity(segment, div);
 
       segment.didStart();
 
-      var msPerFrame = segment.msDuration() / segment.numberOfColors();
+      var msPerFrame;
       var currentFrameIndex = segment.startTime === 0 ? 0 : Math.floor((segment.startTime * 1000) / msPerFrame);
       var lastUpdateLeftoverTime = 0;
 
+      updateMSPerFrame();
       updateColorRender(0);
+
+      segment.addChangeHandler('playbackRate', updateMSPerFrame);
 
       var fnIdentifier = self.addUpdateFunction(updateColorRender);
 
@@ -301,6 +304,10 @@ module.exports = class WebRenderer extends Renderer {
         }
       }
 
+      function updateMSPerFrame() {
+        msPerFrame = segment.msDuration() / segment.numberOfColors();
+      }
+
       if (self.log) {
         console.log(`${window.performance.now()}: started color segment - ${segment.simpleName()}`);
       }
@@ -316,6 +323,17 @@ module.exports = class WebRenderer extends Renderer {
         console.log(`${window.performance.now()}: finished color segment - ${segment.simpleName()}`);
       }
     }
+  }
+
+  /// Rendering Helpers
+
+  setVisualSegmentOpacity(segment, el) {
+    if (segment.opacity !== 1.0) {
+      el.style.opacity = segment.opacity;
+    }
+    segment.addChangeHandler('opacity', function(opacity) {
+      el.style.opacity = opacity;
+    });
   }
 
 };
