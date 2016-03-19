@@ -1,4 +1,12 @@
 {
+  "path": "examples/at-sea",
+  "audio": [
+    {
+      "filename": "fascination.mp3",
+      "duration": 262,
+      "tags": []
+    }
+  ],
   "colors": [{
     "filename": "15min__bourne__continuous.mp4",
     "duration": 894.857,
