@@ -18,6 +18,7 @@ if (args.length < 2) {
 var srtFilepath = args[0];
 var videoFilepath = args[1];
 var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : './out';
+var outputPrefix = args.indexOf('--pre') > 0 ? args[args.indexOf('--pre') + 1] : '';
 var fps = args.indexOf('--fps') > 0 ? parseFloat(args[args.indexOf('--fps') + 1]) : 24;
 var cutForPremiere = args.indexOf('--premiere') > 0;
 var seperateAudio = args.indexOf('--A') > 0;
@@ -102,19 +103,19 @@ shotData.forEach(function(shot, idx) {
   }
 
   if (!noVideo) {
-    var videoOutfile = path.join(outputFilepath, `${shot.index}.mp4`);
+    var videoOutfile = path.join(outputFilepath, outputPrefix + `${shot.index}.mp4`);
     var videoCommand = `ffmpeg -ss ${videoStart} -t ${videoDuration} -i ${videoFilepath} -c:v libx264 ${videoOutfile}`;
     run(videoCommand);
   }
 
   if (seperateAudio) {
-    var audioOutfile = path.join(outputFilepath, `${shot.index}.aac`);
+    var audioOutfile = path.join(outputFilepath, outputPrefix + `${shot.index}.aac`);
     var audioCommand = `ffmpeg -ss ${audioStart} -t ${audioDuration} -i ${videoFilepath} -vn ${audioOutfile}`;
     run(audioCommand);
   }
 
   if(seperateVideo) {
-    var videoOutfile = path.join(outputFilepath, `${shot.index}-v.mp4`);
+    var videoOutfile = path.join(outputFilepath, outputPrefix + `${shot.index}-v.mp4`);
     var videoCommand = `ffmpeg -ss ${videoStart} -t ${videoDuration} -i ${videoFilepath} -c copy -an ${videoOutfile}`;
     run(videoCommand);
   }

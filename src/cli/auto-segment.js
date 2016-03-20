@@ -45,13 +45,19 @@ function splitVideo(file) {
   var shotSplitterPath = path.join(__dirname, 'shot-splitter.js');
   var srtPath = videoPath.substr(0, videoPath.lastIndexOf(".")) +  '_shots.srt';
   var outPath = path.join(mediaPath, 'split-scenes', file.substr(0, file.lastIndexOf(".")));
+  var makeDirectoryCommand = `md ${outPath}`;
+  var useFsDir = false;
   var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag}`;
 
   if (splitShots || splitOnly) {
-    if (!fs.existsSync(outPath)){
-      fs.mkdirSync(outPath);
-    }
-
+  if (useFsDir){
+     if (!fs.existsSync(outPath)){
+       fs.mkdirSync(outPath);
+     }
+  }
+  else{
+    run(makeDirectoryCommand);
+  }
     run(shotSplitCommand);
   }
 }
