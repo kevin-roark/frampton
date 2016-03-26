@@ -1,5 +1,6 @@
 
 var util = require('./util');
+require('string-natural-compare');
 
 module.exports.frequencyWeightedMedia = (media) => {
   if (!media) return [];
@@ -34,6 +35,18 @@ module.exports.volumeSortedMedia = (media, options={}) => {
     var volumeB = mediaB.volume ? (useMax ? mediaB.volume.max : mediaB.volume.mean) : -20;
 
     return descending ? volumeB - volumeA : volumeA - volumeB;
+  });
+};
+
+module.exports.naturalLanguageSortedMedia = (media, options={}) => {
+  var descending = options.descending || false;
+  var caseSensitive = options.caseSensitive || false;
+
+  var comparator = caseSensitive ? String.naturalCompare : String.naturalCaseCompare;
+
+  return _mediaSortedWithComparator(media, function(mediaA, mediaB) {
+    var val = comparator(mediaA.filename, mediaB.filename);
+    return descending ? -val : val;
   });
 };
 

@@ -113,7 +113,7 @@ shotData.forEach(function(shot, idx) {
     run(audioCommand);
   }
 
-  if(seperateVideo) {
+  if (seperateVideo) {
     var videoOutfile = path.join(outputFilepath, `${shot.index}-v.mp4`);
     var videoCommand = `ffmpeg -ss ${videoStart} -t ${videoDuration} -i ${videoFilepath} -c copy -an ${videoOutfile}`;
     run(videoCommand);
