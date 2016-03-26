@@ -17,9 +17,13 @@ var outFile = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : 'fra
 var colors = colorAnalysis.getVideoColors(video);
 
 var outJSON = {
-  filename: video,
-  duration: simpleAnalysis.getVideoDuration(video),
-  colors: colors
+  colors: [
+    {
+      filename: video,
+      duration: simpleAnalysis.getVideoDuration(video),
+      colors: colors
+    }
+  ]
 };
 
 fs.writeFileSync(outFile, JSON.stringify(outJSON));

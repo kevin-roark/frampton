@@ -350,7 +350,7 @@ module.exports = class WebRenderer extends Renderer {
       audioContext.decodeAudioData(audioData,
         function(buffer) {
           source.buffer = buffer;
-          source.connect(audioContext.destination);
+          source.connect(gainNode);
 
           source.loop = segment.loop;
           if (segment.loop) {

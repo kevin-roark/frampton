@@ -22,6 +22,7 @@ var mediaConfigFilepath = args[1];
 var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : './out';
 var shouldUglify = args.indexOf('--nougly') === -1;
 var onlyCopyScore = args.indexOf('--onlyscore') >= 0;
+var allowAllBrowsers = args.indexOf('--allbrowsers') >= 0;
 
 var score = fs.readFileSync(scoreFilePath).toString()
             .replace('frampton.Renderer', 'frampton.WebRenderer');
@@ -29,7 +30,7 @@ var score = fs.readFileSync(scoreFilePath).toString()
 var mainJS = `
   (function() {
     var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    if (!isChrome) {
+    if (!isChrome && !${allowAllBrowsers}) {
       console.log('only chrome is supported for now...');
       return;
     }
