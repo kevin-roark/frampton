@@ -12,7 +12,7 @@ module.exports = {
   Renderer: require('./renderer/renderer'),
   VideoRenderer: require('./renderer/video-renderer'),
 
-  Tagger: require('./tagger'),
-  mediaArranger: require('./media-arranger'),
-  util: require('./util')
+  Tagger: require('./etc/tagger'),
+  mediaArranger: require('./etc/media-arranger'),
+  util: require('./etc/util')
 };
