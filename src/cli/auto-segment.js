@@ -44,10 +44,11 @@ function splitVideo(file) {
   var videoPath = path.join(mediaPath, file);
   var shotSplitterPath = path.join(__dirname, 'shot-splitter.js');
   var srtPath = videoPath.substr(0, videoPath.lastIndexOf(".")) +  '_shots.srt';
-  var outPath = path.join(mediaPath, 'split-scenes', file.substr(0, file.lastIndexOf(".")));
+  var fileString = file.substr(0, file.lastIndexOf("."));
+  var outPath = path.join(mediaPath, 'split-scenes', fileString);
   var makeDirectoryCommand = `md ${outPath}`;
   var useFsDir = false;
-  var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag}`;
+  var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag} --pre ${fileString}-`;
 
   if (splitShots || splitOnly) {
   if (useFsDir){
