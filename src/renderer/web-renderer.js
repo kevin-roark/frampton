@@ -95,6 +95,8 @@ module.exports = class WebRenderer extends Renderer {
     var unit = new ScheduledUnit(segment, offset);
 
     this.insertScheduledUnit(unit, this.scheduledRenders);
+
+    super.scheduleSegmentRender(segment, delay);
   }
 
   /// Rendering

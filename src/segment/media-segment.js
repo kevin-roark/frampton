@@ -75,6 +75,12 @@ module.exports = class MediaSegment extends Segment {
     return this;
   }
 
+  setLoop(loop) {
+    this.loop = loop;
+
+    return this;
+  }
+
   // Generators
 
   extensionlessName() {

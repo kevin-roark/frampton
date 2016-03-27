@@ -236,6 +236,8 @@ module.exports = class VideoRenderer extends Renderer {
     this.renderSegment(segment, {offset: delay});
 
     this.lastScheduleTime = new Date();
+
+    super.scheduleSegmentRender(segment, delay);
   }
 
   scheduleMediaSegment(segment, offset) {

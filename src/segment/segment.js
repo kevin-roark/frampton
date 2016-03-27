@@ -75,4 +75,8 @@ module.exports = class Segment {
     return 'plain segment';
   }
 
+  associatedSegments() {
+    return null;
+  }
+
 };

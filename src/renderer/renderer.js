@@ -14,7 +14,18 @@ module.exports = class Renderer {
 
   /// Scheduling
 
-  scheduleSegmentRender(segment, offset) {}
+  scheduleSegmentRender(segment, delay) {
+    // override to provide concrete implementation of actual scheduling
+
+    // this handles associated segments 4 u
+    var associatedSegments = segment.associatedSegments();
+    if (associatedSegments) {
+      for (var i = 0; i < associatedSegments.length; i++) {
+        var associatedOffset = delay + associatedSegments[i].offset * 1000;
+        this.scheduleSegmentRender(associatedSegments[i].segment, associatedOffset);
+      }
+    }
+  }
 
   insertScheduledUnit(scheduledUnit, units) {
     var insertionIndex = getInsertionIndex(units, scheduledUnit, compareScheduledUnits);

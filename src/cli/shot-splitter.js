@@ -74,12 +74,12 @@ shotData.forEach(function(shot, idx) {
     duration = (shot.duration + (2 * msPerFrame)) / 1000;
     videoDuration = duration + videoHandleLength * 2;
     audioDuration = duration + audioHandleLength * 2;
-    if(videoStart < 0){
-      videoStart == 0;
+    if (videoStart < 0) {
+      videoStart = 0;
       videoDuration = duration + videoHandleLength + shot.start;
     }
-    if(audioStart < 0){
-      audioStart == 0;
+    if (audioStart < 0) {
+      audioStart = 0;
       audioDuration = duration + audioHandleLength + shot.start;
     }
   }
