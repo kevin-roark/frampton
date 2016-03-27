@@ -17,7 +17,7 @@ var endFlag = args.indexOf('--end') > 0 ? parseFloat(args[args.indexOf('--end') 
 var commandsRunning = 0;
 var commandQueue = [];
 
-var files = filesInPath(mediaPath);
+var files = filesInPath(mediaPath, true);
 
 if (!splitOnly) {
   files.forEach(function(file) {
@@ -34,21 +34,19 @@ files.forEach(function(file) {
 });
 
 
-function segmentVideo(file) {
-  var videoPath = path.join(mediaPath, file);
+function segmentVideo(videoPath) {
   var segmentCommand = `video_segmentation ${videoPath}`;
   run(segmentCommand);
 }
 
-function splitVideo(file) {
-  var videoPath = path.join(mediaPath, file);
+function splitVideo(videoPath) {
   var shotSplitterPath = path.join(__dirname, 'shot-splitter.js');
   var srtPath = videoPath.substr(0, videoPath.lastIndexOf(".")) +  '_shots.srt';
-  var fileString = file.substr(0, file.lastIndexOf("."));
-  var outPath = path.join(mediaPath, 'split-scenes', fileString);
+  var extensionFreeName = path.basename(videoPath, path.extname(videoPath));
+  var outPath = path.join(mediaPath, 'split-scenes', extensionFreeName);
   var makeDirectoryCommand = `md ${outPath}`;
   var useFsDir = false;
-  var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag} --pre ${fileString}-`;
+  var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag} --pre ${extensionFreeName}-`;
 
   if (splitShots || splitOnly) {
   if (useFsDir){

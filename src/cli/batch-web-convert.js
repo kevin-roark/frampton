@@ -20,7 +20,7 @@ if (!fs.existsSync(outputDirectory)){
   fs.mkdirSync(outputDirectory);
 }
 
-var files = filesInPath(videoDirectory);
+var files = filesInPath(videoDirectory, true);
 var itemsBeingProcessed = 0;
 var videoFileQueue = [];
 
@@ -31,16 +31,15 @@ files.forEach(function(file) {
   }
 });
 
-function convertVideo(file) {
+function convertVideo(filepath) {
   if (itemsBeingProcessed > 4) {
-    videoFileQueue.push(file);
+    videoFileQueue.push(filepath);
     return;
   }
 
   itemsBeingProcessed += 1;
 
-  var filepath = path.join(videoDirectory, file);
-  var extensionFreeFilename = path.basename(file, path.extname(file));
+  var extensionFreeFilename = path.basename(filepath, path.extname(filepath));
   var outputMP4Filepath = path.join(outputDirectory, `${extensionFreeFilename}.mp4`);
 
   console.log(`converting ${filepath} to web mp4...`);

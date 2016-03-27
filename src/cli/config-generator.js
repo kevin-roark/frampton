@@ -16,7 +16,7 @@ var config = {
   videos: []
 };
 
-var files = filesInPath(config.path);
+var files = filesInPath(config.path, true);
 
 files.forEach(function(file) {
   if (path.extname(file) === '.mp4') {
@@ -26,14 +26,12 @@ files.forEach(function(file) {
 
 writeToFile();
 
-function addVideo(file) {
-  var videoPath = path.join(config.path, file);
-
+function addVideo(videoPath) {
   var duration = simpleAnalysis.getVideoDuration(videoPath);
   var volume = simpleAnalysis.getVideoVolume(videoPath);
 
   config.videos.push({
-    filename: file,
+    filename: path.basename(videoPath),
     duration: duration + durationErrorConstant,
     volume: volume,
     tags: []
