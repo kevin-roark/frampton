@@ -66,6 +66,7 @@ module.exports = class VideoSegment extends VisualSegment {
     audioHandleSegment
       .setStartTime(this.startTime)
       .setPlaybackRate(this.playbackRate)
+      .setFadeDuration(this.audioHandleFadeDuration)
       .setLoop(this.loop);
 
     return [{

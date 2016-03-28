@@ -327,20 +327,39 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
-  renderAudioSegment(segment, {offset=0}) {
+  renderAudioSegment(segment, options) {
+    this.renderAudioSegmentWithWebAudio(segment, options);
+  }
+
+  // helpful web audio documentation: http://www.html5rocks.com/en/tutorials/webaudio/intro/
+  renderAudioSegmentWithWebAudio(segment,  {offset=0}) {
     var self = this;
 
     var Context = window.AudioContext || window.webkitAudioContext;
     var audioContext = new Context();
     var source = audioContext.createBufferSource();
+    var sourceStartTime = audioContext.currentTime + offset / 1000;
 
     var gainNode = audioContext.createGain();
     gainNode.connect(audioContext.destination);
-
-    gainNode.gain.value = segment.volume;
     segment.addChangeHandler('volume', function(volume) {
       gainNode.gain.value = volume;
     });
+
+    if (segment.fadeInDuration) {
+      gainNode.gain.linearRampToValueAtTime(0, sourceStartTime);
+      gainNode.gain.linearRampToValueAtTime(segment.volume, sourceStartTime + segment.fadeInDuration);
+    }
+    else {
+      gainNode.gain.value = segment.volume;
+    }
+
+    if (segment.fadeOutDuration) {
+      gainNode.gain.linearRampToValueAtTime(segment.volume, sourceStartTime + segment.getDuration() - segment.fadeOutDuration);
+      gainNode.gain.linearRampToValueAtTime(0, sourceStartTime + segment.getDuration());
+    }
+
+    source.start(sourceStartTime, segment.startTime, segment.getDuration());
 
     var request = new XMLHttpRequest();
     request.open('GET', this.videoSourceMaker(segment.filename), true);
@@ -373,8 +392,6 @@ module.exports = class WebRenderer extends Renderer {
     };
 
     request.send();
-
-    source.start(audioContext.currentTime + offset / 1000, segment.startTime, segment.getDuration());
   }
 
   /// Rendering Helpers

@@ -11,12 +11,16 @@ module.exports = class AudioSegment extends MediaSegment {
     this.segmentType = 'audio';
 
     this.volume = options.volume || 0.8;
+    this.fadeInDuration = options.fadeInDuration;
+    this.fadeOutDuration = options.fadeOutDuration || this.fadeInDuration;
   }
 
   copy(audioSegment) {
     super.copy(audioSegment);
 
     this.volume = audioSegment.volume;
+    this.fadeInDuration = audioSegment.fadeInDuration;
+    this.fadeOutDuration = audioSegment.fadeOutDuration;
 
     return this;
   }
@@ -31,6 +35,24 @@ module.exports = class AudioSegment extends MediaSegment {
     this.volume = volume;
 
     this.notifyChangeHandlers('volume', volume);
+
+    return this;
+  }
+
+  setFadeDuration(fadeDuration) {
+    return this
+      .setFadeInDuration(fadeDuration)
+      .setFadeOutDuration(fadeDuration);
+  }
+
+  setFadeInDuration(fadeInDuration) {
+    this.fadeInDuration = fadeInDuration;
+
+    return this;
+  }
+
+  setFadeOutDuration(fadeOutDuration) {
+    this.fadeOutDuration = fadeOutDuration;
 
     return this;
   }
