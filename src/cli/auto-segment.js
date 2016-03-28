@@ -12,6 +12,9 @@ var splitShots = args.indexOf('--split') > 0;
 var splitOnly = args.indexOf('--splitonly') > 0;
 var startFlag = args.indexOf('--start') > 0 ? parseFloat(args[args.indexOf('--start') + 1]) : 2; // values less than 2 trim the begining
 var endFlag = args.indexOf('--end') > 0 ? parseFloat(args[args.indexOf('--end') + 1]) : 2; // values less than 2 trim the end
+var extraCommand1 = args.indexOf('--c') > 0 ? args[args.indexOf('--c') + 1] : '';
+var extraCommand2 = args.indexOf('--c2') > 0 ? args[args.indexOf('--c2') + 1] : '';
+var extraCommand3 = args.indexOf('--c3') > 0 ? args[args.indexOf('--c3') + 1] : '';
 
 
 var commandsRunning = 0;
@@ -46,7 +49,7 @@ function splitVideo(videoPath) {
   var outPath = path.join(mediaPath, 'split-scenes', extensionFreeName);
   var makeDirectoryCommand = `md ${outPath}`;
   var useFsDir = false;
-  var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag} --pre ${extensionFreeName}-`;
+  var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag} --pre ${extensionFreeName}- ${extraCommand1} ${extraCommand2} ${extraCommand3}`;
 
   if (splitShots || splitOnly) {
   if (useFsDir){
