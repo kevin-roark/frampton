@@ -328,7 +328,12 @@ module.exports = class WebRenderer extends Renderer {
   }
 
   renderAudioSegment(segment, options) {
-    this.renderAudioSegmentWithWebAudio(segment, options);
+    if (segment.preferHTMLAudio || options.preferHTMLAudio || this.preferHTMLAudio) {
+      this.renderAudioSegmentWithHTMLAudio(segment, options);
+    }
+    else {
+      this.renderAudioSegmentWithWebAudio(segment, options);
+    }
   }
 
   // helpful web audio documentation: http://www.html5rocks.com/en/tutorials/webaudio/intro/
@@ -392,6 +397,74 @@ module.exports = class WebRenderer extends Renderer {
     };
 
     request.send();
+  }
+
+  renderAudioSegmentWithHTMLAudio(segment, {offset=0}) {
+    var self = this;
+
+    var audio = document.createElement('audio');
+    audio.preload = true;
+    audio.src = this.videoSourceMaker(segment.filename);
+    audio.currentTime = segment.startTime;
+    audio.playbackRate = segment.playbackRate;
+    segment.addChangeHandler('playbackRate', function(playbackRate) { audio.playbackRate = playbackRate; });
+    audio.volume = segment.volume;
+    segment.addChangeHandler('volume', function(volume) { audio.volume = volume; });
+
+    var segmentDuration = segment.msDuration();
+    var expectedStart = window.performance.now() + offset;
+
+    audio.addEventListener('playing', function() {
+      var now = window.performance.now();
+      var startDelay = now + self.startPerceptionCorrection - expectedStart;
+
+      var endTimeout = segmentDuration;
+      if (startDelay > self.startPerceptionCorrection) {
+        endTimeout -= startDelay;
+      }
+
+      setTimeout(end, endTimeout);
+    }, false);
+
+    setTimeout(start, offset - this.startPerceptionCorrection);
+
+    function start() {
+      audio.play();
+
+      var fadeInDuration = (1000 * segment.fadeInDuration) || self.audioFadeDuration;
+      if (fadeInDuration) {
+        fadeInDuration = Math.min(fadeInDuration, segmentDuration / 2);
+
+        audio.volume = 0;
+        new TWEEN.Tween(audio)
+          .to({volume: segment.volume}, fadeInDuration)
+          .start();
+      }
+
+      var fadeOutDuration = (1000 * segment.fadeOutDuration) || self.audioFadeDuration;
+      if (fadeOutDuration) {
+        setTimeout(function() {
+          new TWEEN.Tween(audio)
+            .to({volume: 0}, fadeOutDuration)
+            .start();
+        }, segmentDuration - fadeOutDuration);
+      }
+
+      segment.didStart();
+    }
+
+    function end() {
+      if (segment.loop) {
+        audio.pause();
+        audio.currentTime = segment.startTime;
+        audio.play();
+        setTimeout(end, segmentDuration);
+      }
+      else {
+        audio.src = '';
+        segment.cleanup();
+      }
+    }
   }
 
   /// Rendering Helpers
