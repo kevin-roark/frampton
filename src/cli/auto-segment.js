@@ -49,14 +49,14 @@ function splitVideo(videoPath) {
   var shotSplitCommand = `node ${shotSplitterPath} ${srtPath} ${videoPath} --out ${outPath} --start ${startFlag} --end ${endFlag} --pre ${extensionFreeName}-`;
 
   if (splitShots || splitOnly) {
-  if (useFsDir){
-     if (!fs.existsSync(outPath)){
-       fs.mkdirSync(outPath);
-     }
-  }
-  else{
-    run(makeDirectoryCommand);
-  }
+    if (useFsDir) {
+       if (!fs.existsSync(outPath)) {
+         fs.mkdirSync(outPath);
+       }
+    }
+    else {
+      run(makeDirectoryCommand);
+    }
     run(shotSplitCommand);
   }
 }
