@@ -4,6 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var filesInPath = require('./files-in-path');
 var simpleAnalysis = require('../analysis/simple-analysis');
+require('string-natural-compare');
 
 var args = process.argv.slice(2);
 
@@ -13,14 +14,19 @@ var durationErrorConstant = args.indexOf('--durationConstant') >= 0 ? Number(arg
 
 var config = {
   path: mediaPath,
-  videos: []
+  videos: [],
+  audio: []
 };
 
 var files = filesInPath(config.path, true);
 
 files.forEach(function(file) {
-  if (path.extname(file) === '.mp4') {
+  var extname = path.extname(file);
+  if (extname === '.mp4') {
     addVideo(file);
+  }
+  else if (extname === '.mp3') {
+    addAudio(file);
   }
 });
 
@@ -28,19 +34,35 @@ writeToFile();
 
 function addVideo(videoPath) {
   var duration = simpleAnalysis.getVideoDuration(videoPath);
-  var volume = simpleAnalysis.getVideoVolume(videoPath);
+  var volume = simpleAnalysis.getMediaVolume(videoPath);
 
   config.videos.push({
-    filename: path.basename(videoPath),
+    filename: filenameWithoutMediaDirectory(videoPath),
     duration: duration + durationErrorConstant,
     volume: volume,
     tags: []
   });
 }
 
+function addAudio(audioPath) {
+  var duration = simpleAnalysis.getAudioDuration(audioPath);
+  var volume = simpleAnalysis.getMediaVolume(audioPath);
+
+  config.audio.push({
+    filename: filenameWithoutMediaDirectory(audioPath),
+    duration: duration + durationErrorConstant,
+    volume: volume,
+    tags: []
+  });
+}
+
+function filenameWithoutMediaDirectory(filename) {
+  return filename.substring(filename.indexOf(mediaPath) + mediaPath.length + 1); // 1 for the slash :-)
+}
+
 function writeToFile() {
   config.videos.sort(function(a, b) {
-    return a.filename.localeCompare(b.filename);
+    return String.naturalCaseCompare(a.filename, b.filename);
   });
 
   var jsonConfig = JSON.stringify(config);

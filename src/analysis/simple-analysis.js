@@ -9,7 +9,14 @@ function getVideoDuration(videoPath) {
   return duration;
 }
 
-function getVideoVolume(videoPath) {
+function getAudioDuration(audioPath) {
+  var soxiCommand = `soxi -D ${audioPath}`;
+  var duration = parseFloat(execSync(soxiCommand).toString());
+
+  return duration;
+}
+
+function getMediaVolume(videoPath) {
   var command = `ffmpeg -i ${videoPath} -af "volumedetect" -f null /dev/null 2>&1`;
   var output = execSync(command, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
 
@@ -39,4 +46,5 @@ function getVideoVolume(videoPath) {
 }
 
 module.exports.getVideoDuration = getVideoDuration;
-module.exports.getVideoVolume = getVideoVolume;
+module.exports.getAudioDuration = getAudioDuration;
+module.exports.getMediaVolume = getMediaVolume;
