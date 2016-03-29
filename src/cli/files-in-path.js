@@ -10,7 +10,7 @@ function filesInPath(dir, fullPath) {
 
       var stat = fs.statSync(filepath);
       if (stat && stat.isDirectory()) {
-          files = files.concat(filesInPath(filepath));
+          files = files.concat(filesInPath(filepath, fullPath));
       }
       else {
         if (fullPath) {
