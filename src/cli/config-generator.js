@@ -39,7 +39,7 @@ function addVideo(videoPath) {
   config.videos.push({
     filename: filenameWithoutMediaDirectory(videoPath),
     duration: duration + durationErrorConstant,
-    volume: volume,
+    volumeInfo: volume,
     tags: []
   });
 }
@@ -51,7 +51,7 @@ function addAudio(audioPath) {
   config.audio.push({
     filename: filenameWithoutMediaDirectory(audioPath),
     duration: duration + durationErrorConstant,
-    volume: volume,
+    volumeInfo: volume,
     tags: []
   });
 }

@@ -31,8 +31,8 @@ module.exports.volumeSortedMedia = (media, options={}) => {
   var descending = options.descending || false;
   var useMax = options.useMax || false;
   return _mediaSortedWithComparator(media, function(mediaA, mediaB) {
-    var volumeA = mediaA.volume ? (useMax ? mediaA.volume.max : mediaA.volume.mean) : -20;
-    var volumeB = mediaB.volume ? (useMax ? mediaB.volume.max : mediaB.volume.mean) : -20;
+    var volumeA = mediaA.volumeInfo ? (useMax ? mediaA.volumeInfo.max : mediaA.volumeInfo.mean) : -20;
+    var volumeB = mediaB.volumeInfo ? (useMax ? mediaB.volumeInfo.max : mediaB.volumeInfo.mean) : -20;
 
     return descending ? volumeB - volumeA : volumeA - volumeB;
   });
