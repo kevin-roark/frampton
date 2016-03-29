@@ -16,6 +16,7 @@ if (args.length < 2) {
 var scoreFilePath = args[0];
 var mediaConfigFilepath = args[1];
 var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : './out';
+var renderedVideoName = args.indexOf('--outName') > 0 ? args[args.indexOf('--outName') + 1] : 'frampton-final.mp4';
 
 var score = fs.readFileSync(scoreFilePath).toString()
             .replace('frampton.Renderer', 'frampton.VideoRenderer')
@@ -23,9 +24,9 @@ var score = fs.readFileSync(scoreFilePath).toString()
 
 var mainJS = `
   (function() {
-    var frampton = require('../../src/frampton');
+    var frampton = require('../../src/video-frampton');
     var mediaConfig = require('./media_config.json');
-    var outputFilepath = '${outputFilepath}';
+    mediaConfig.__renderedVideoName = '${renderedVideoName}';
 
     ${score}
   })();\n

@@ -10,9 +10,9 @@ module.exports = {
   finiteLoopingSegment: require('./segment/finite-looping-segment'),
 
   Renderer: require('./renderer/renderer'),
-  VideoRenderer: require('./renderer/video-renderer'),
 
   Tagger: require('./etc/tagger'),
+  MediaFinder: require('./etc/media-finder'),
   mediaArranger: require('./etc/media-arranger'),
   util: require('./etc/util')
 };

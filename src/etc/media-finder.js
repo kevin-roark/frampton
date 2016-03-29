@@ -1,6 +1,6 @@
 
 module.exports = class MediaFinder {
-  construtor(mediaConfig) {
+  constructor(mediaConfig) {
     this.mediaConfig = mediaConfig;
   }
 
