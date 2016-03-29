@@ -103,9 +103,12 @@ module.exports = class VideoRenderer extends Renderer {
     // concatenate trimmed files
     var concatFile = this.concatenateUnits(units);
 
+    // add audio baby
+    var mixedVideoFile = this.mixAudioUnits(concatFile, units);
+
     // move the concattenated file, as it is the final frampton render!
     var outname = this.getFilename('frampton-final.mp4');
-    fs.renameSync(concatFile, outname);
+    fs.renameSync(mixedVideoFile, outname);
 
     // clean up temporary files
     this.deleteTemporaryFiles();
@@ -125,6 +128,11 @@ module.exports = class VideoRenderer extends Renderer {
     // trim the video file of each unit to the actual portion renderered
     for (var idx = 0; idx < units.length; idx++) {
       var unit = units[idx];
+
+      if (unit.segment.segmentType === 'audio') {
+        // we handle audio after all visual segments are done
+        continue;
+      }
 
       var start = unit.segment.startTime;
 
@@ -179,7 +187,9 @@ module.exports = class VideoRenderer extends Renderer {
     // one video per line
     var concatInfo = '';
     units.forEach((unit) => {
-      concatInfo += `file ${unit.currentFile}\n`;
+      if (unit.segment.segmentType !== 'audio') {
+        concatInfo += `file ${unit.currentFile}\n`;
+      }
     });
 
     // write lines to file
@@ -195,6 +205,29 @@ module.exports = class VideoRenderer extends Renderer {
     fs.unlink(concatInfoFilename);
 
     return concatVideoFilename;
+  }
+
+  mixAudioUnits(videoFile, units) {
+    var audioUnits = [];
+    units.forEach((unit) => {
+      if (unit.segment.segmentType === 'audio') {
+        audioUnits.push(unit);
+      }
+    });
+
+    var currentVideoFile = videoFile;
+    audioUnits.forEach((audioUnit) => {
+      var newVideoFile = this.generateVideoFilename();
+      var command =
+        `ffmpeg -i ${currentVideoFile} -i ${audioUnit.currentFile} -filter_complex \
+        "[0:a][1:a]amerge=inputs=2[a]" \
+        -map 0:v -map "[a]" -c:v copy -ac 2 ${newVideoFile}`;
+
+      this.executeFFMPEGCommand(command);
+      currentVideoFile = newVideoFile;
+    });
+
+    return currentVideoFile;
   }
 
   removeUnrenderableUnits(units) {
@@ -255,7 +288,15 @@ module.exports = class VideoRenderer extends Renderer {
 
   /// Rendering
 
-  renderVideoSegment(segment, {offset=0}) {
+  renderVideoSegment(segment, options) {
+    this.renderMediaSegment(segment, options);
+  }
+
+  renderAudioSegment(segment, options) {
+    this.renderMediaSegment(segment, options);
+  }
+
+  renderMediaSegment(segment, {offset=0}) {
     this.scheduleMediaSegment(segment, offset);
 
     if (segment.loop) {
