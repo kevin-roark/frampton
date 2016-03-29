@@ -6,6 +6,7 @@ var renderer = new frampton.Renderer({
 var indexSortedVideos = [];
 var maxScenes = 4;
 var tagger = new frampton.Tagger(mediaConfig);
+var finder = new frampton.MediaFinder(mediaConfig);
 
 for (var idx = 1; idx <= maxScenes; idx++) {
   var pattern = idx.toString() + '-';
@@ -27,8 +28,14 @@ while (hasMoreShots) {
     if (shotIndex < sceneShots.length) {
       var shot = sceneShots[shotIndex];
       var segment = new frampton.VideoSegment(shot);
-      segments.push(segment);
 
+      var audioHandleMedia = finder.findAudioHandleForVideo(shot);
+      if (audioHandleMedia) {
+        segment.setAudioHandleMedia(audioHandleMedia);
+        segment.setAudioHandleFadeDuration(0.5);
+      }
+
+      segments.push(segment);
       hasMoreShots = true;
     }
   }

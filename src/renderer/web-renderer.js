@@ -41,24 +41,30 @@ module.exports = class WebRenderer extends Renderer {
 
     var timeToLoad = this.timeToLoadVideo + TimePerFrame;
     var scheduledRenders = this.scheduledRenders;
-    var renderedCount = 0;
 
+    var toRender = [];
     for (var i = 0; i < scheduledRenders.length; i++) {
       var scheduledRender = scheduledRenders[i];
       var timeUntilStart = scheduledRender.offset - now;
 
       if (timeUntilStart < timeToLoad) {
         // start to render, and mark for removal
-        this.renderSegment(scheduledRender.segment, {offset: Math.max(timeUntilStart, 0)});
-        renderedCount += 1;
+        toRender.push({segment: scheduledRender.segment, options: {offset: Math.max(timeUntilStart, 0)}});
       }
       else {
         break; // because we sort by offset, we can break early
       }
     }
-    if (renderedCount > 0) {
+
+    if (toRender.length > 0) {
       // remove used-up units
-      scheduledRenders.splice(0, renderedCount);
+      scheduledRenders.splice(0, toRender.length);
+
+      // actually perform rendering
+      for (i = 0; i < toRender.length; i++) {
+        var renderModel = toRender[i];
+        this.renderSegment(renderModel.segment, renderModel.options);
+      }
     }
 
     for (i = 0; i < this.updateFunctions.length; i++) {
@@ -91,12 +97,12 @@ module.exports = class WebRenderer extends Renderer {
   }
 
   scheduleSegmentRender(segment, delay) {
+    super.scheduleSegmentRender(segment, delay);
+
     var offset = window.performance.now() + delay;
     var unit = new ScheduledUnit(segment, offset);
 
     this.insertScheduledUnit(unit, this.scheduledRenders);
-
-    super.scheduleSegmentRender(segment, delay);
   }
 
   /// Rendering
@@ -116,6 +122,11 @@ module.exports = class WebRenderer extends Renderer {
     if (segment.width) { video.style.width = video.style.height = segment.width; }
     if (segment.top) { video.style.top = segment.top; }
     if (segment.left) { video.style.left = segment.left; }
+
+    video.volume = segment.volume;
+    segment.addChangeHandler('volume', function(volume) {
+      video.volume = volume;
+    });
 
     video.currentTime = segment.startTime;
 
@@ -201,7 +212,7 @@ module.exports = class WebRenderer extends Renderer {
         // fade in
         video.volume = 0;
         new TWEEN.Tween(video)
-          .to({volume: 1}, audioFadeDuration)
+          .to({volume: segment.volume}, audioFadeDuration)
           .start();
 
         setTimeout(function() {

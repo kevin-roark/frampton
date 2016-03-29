@@ -14,6 +14,16 @@ module.exports = class VideoSegment extends VisualSegment {
     this.audioHandleMedia = options.audioHandleMedia;
     this.audioHandleSegmentOptions = options.audioHandleSegmentOptions || {};
     this.audioHandleFadeDuration = options.audioHandleFadeDuration || 0.25;
+
+    if (this.audioHandleMedia) {
+      this.volume = 0;
+    }
+    else if (options.volume && !isNaN(parseFloat(options.volume))) {
+      this.volume = options.volume;
+    }
+    else {
+      this.volume = 1.0;
+    }
   }
 
   copy(videoSegment) {
@@ -38,6 +48,25 @@ module.exports = class VideoSegment extends VisualSegment {
 
   setVideoFadeDuration(videoFadeDuration) {
     this.videoFadeDuration = videoFadeDuration;
+    return this;
+  }
+
+  setAudioHandleMedia(audioHandleMedia) {
+    this.audioHandleMedia = audioHandleMedia;
+    this.setVolume(0);
+    return this;
+  }
+
+  setAudioHandleFadeDuration(audioHandleFadeDuration) {
+    this.audioHandleFadeDuration = audioHandleFadeDuration;
+    return this;
+  }
+
+  setVolume(volume) {
+    this.volume = volume;
+
+    this.notifyChangeHandlers('volume', volume);
+
     return this;
   }
 
