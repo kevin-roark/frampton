@@ -109,8 +109,8 @@ shotData.forEach(function(shot, idx) {
   }
 
   if (seperateAudio) {
-    var audioOutfile = path.join(outputFilepath, outputPrefix + `${shot.index}.aac`);
-    var audioCommand = `ffmpeg -ss ${audioStart} -t ${audioDuration} -i ${videoFilepath} -vn ${audioOutfile}`;
+    var audioOutfile = path.join(outputFilepath, outputPrefix + `${shot.index}.mp3`);
+    var audioCommand = `ffmpeg -ss ${audioStart} -t ${audioDuration} -i ${videoFilepath} -b:a 192K -vn ${audioOutfile}`;
     run(audioCommand);
   }
 
