@@ -3,11 +3,14 @@ var fs = require('fs');
 var path = require('path');
 var Renderer = require('./renderer');
 var ScheduledUnit = require('./scheduled-unit');
+var util = require('../etc/util');
 var execSync = require('child_process').execSync;
 
 module.exports = class VideoRenderer extends Renderer {
   constructor(options) {
     super(options);
+
+    this.renderedVideoName = options.renderedVideoName || this.mediaConfig.__renderedVideoName || 'frampton-final.mp4';
 
     this.maxVideoDuration = options.maxVideoDuration || 60 * 1000 * 15; // 15 minutes
     this.enforceHardDurationLimit = options.enforceHardDurationLimit !== undefined ? options.enforceHardDurationLimit : true;
@@ -80,8 +83,9 @@ module.exports = class VideoRenderer extends Renderer {
     var units = this.renderStructure.scheduledUnits;
 
     // pre-processing
+    var firstUnitOffset = units[0].offset;
     units.forEach((unit) => {
-      unit.offset -= units[0].offset; // remove beginning offset padding
+      unit.offset -= firstUnitOffset; // remove beginning offset padding
       unit.currentFile = this.videoSourceMaker(unit.segment.filename);
     });
 
@@ -97,17 +101,27 @@ module.exports = class VideoRenderer extends Renderer {
       console.log('\n');
     }
 
+    var visualUnits = [], audioUnits = [];
+    units.forEach((unit) => {
+      if (unit.segment.segmentType !== 'audio') {
+        visualUnits.push(unit);
+      }
+      else {
+        audioUnits.push(unit);
+      }
+    });
+
     // cut units into smaller units of continuous files
-    this.cutUnitsIntoChunks(units);
+    this.cutUnitsIntoChunks(visualUnits);
 
-    // concatenate trimmed files
-    var concatFile = this.concatenateUnits(units);
+    // concatenate trimmed files into gapless video
+    var concatFile = this.concatenateUnits(visualUnits);
 
-    // add audio baby
-    var mixedVideoFile = this.mixAudioUnits(concatFile, units);
+    // add audio to video baby
+    var mixedVideoFile = this.mixAudioUnits(concatFile, audioUnits);
 
     // move the concattenated file, as it is the final frampton render!
-    var outname = this.getFilename('frampton-final.mp4');
+    var outname = this.getFilename(this.renderedVideoName);
     fs.renameSync(mixedVideoFile, outname);
 
     // clean up temporary files
@@ -129,18 +143,13 @@ module.exports = class VideoRenderer extends Renderer {
     for (var idx = 0; idx < units.length; idx++) {
       var unit = units[idx];
 
-      if (unit.segment.segmentType === 'audio') {
-        // we handle audio after all visual segments are done
-        continue;
-      }
-
       var start = unit.segment.startTime;
 
       // TODO: account for z-indexing in this shit, right now it will always assume next video has higher z
-      var duration;
+      var segmentDuration = unit.segment.msDuration();
+      var duration = segmentDuration;
       if (idx < units.length - 1) {
         var nextUnit = units[idx + 1];
-        var segmentDuration = unit.segment.msDuration();
         var offset = unit.offset + segmentDuration;
 
         if (offset > nextUnit.offset) {
@@ -171,9 +180,9 @@ module.exports = class VideoRenderer extends Renderer {
       duration = duration / 1000;
 
       // only perform the trim if *strictly* necessary
-      if (start > 0 || duration < unit.segment.mediaDuration) {
+      if (start > 0 || duration < unit.segment.mediaDuration || unit.segment.volume < 1) {
         var filename = this.generateVideoFilename();
-        var command = `ffmpeg -ss ${start} -t ${duration} -i ${unit.currentFile} -c:v copy ${filename}`;
+        var command = `ffmpeg -ss ${start} -t ${duration} -i ${unit.currentFile} -af "volume=${unit.segment.volume}" -c:v copy ${filename}`;
         this.executeFFMPEGCommand(command);
 
         unit.currentFile = filename;
@@ -182,14 +191,21 @@ module.exports = class VideoRenderer extends Renderer {
   }
 
   concatenateUnits(units) {
+    var files = [];
+    units.forEach((unit) => {
+      files.push(unit.currentFile);
+    });
+
+    return this.concatenateFiles(files);
+  }
+
+  concatenateFiles(files) {
     // https://trac.ffmpeg.org/wiki/Concatenate
 
     // one video per line
     var concatInfo = '';
-    units.forEach((unit) => {
-      if (unit.segment.segmentType !== 'audio') {
-        concatInfo += `file ${unit.currentFile}\n`;
-      }
+    files.forEach((file) => {
+      concatInfo += `file ${file}\n`;
     });
 
     // write lines to file
@@ -208,22 +224,43 @@ module.exports = class VideoRenderer extends Renderer {
   }
 
   mixAudioUnits(videoFile, units) {
-    var audioUnits = [];
-    units.forEach((unit) => {
-      if (unit.segment.segmentType === 'audio') {
-        audioUnits.push(unit);
-      }
-    });
+    // truly helpful: http://superuser.com/questions/716320/ffmpeg-placing-audio-at-specific-location
+    // other resource: http://stackoverflow.com/questions/32988106/ffmpeg-replace-part-of-audio-in-mp4-video-file
+
+    // TODO: fade audio
+
+    if (units.length === 0) {
+      return videoFile;
+    }
 
     var currentVideoFile = videoFile;
-    audioUnits.forEach((audioUnit) => {
-      var newVideoFile = this.generateVideoFilename();
-      var command =
-        `ffmpeg -i ${currentVideoFile} -i ${audioUnit.currentFile} -filter_complex \
-        "[0:a][1:a]amerge=inputs=2[a]" \
-        -map 0:v -map "[a]" -c:v copy -ac 2 ${newVideoFile}`;
 
+    var unitChunks = util.splitArray(units, 25);
+    unitChunks.forEach((units) => {
+      var command = `ffmpeg -i ${currentVideoFile}`;
+      units.forEach((unit) => {
+        command += ` -i ${unit.currentFile}`;
+      });
+
+      var names = '';
+
+      command += ` -filter_complex "`;
+      units.forEach((unit, idx) => {
+        var segment = unit.segment;
+        command += `[${idx+1}:a]atrim=${segment.startTime}:${segment.getDuration()}`;
+        if (unit.offset > 0) {
+          command += `,adelay=${unit.offset}|${unit.offset}`; // supposed to be in ms wow!!
+        }
+        var name = `[aud${idx+1}]`;
+        command += `${name};`;
+        names += name;
+      });
+
+      var newVideoFile = this.generateVideoFilename();
+      var numberOfInputs = units.length + 1;
+      command += `[0:a]${names}amix=inputs=${numberOfInputs},volume=${numberOfInputs}"  -map 0:v -c:v copy ${newVideoFile}`;
       this.executeFFMPEGCommand(command);
+
       currentVideoFile = newVideoFile;
     });
 
@@ -266,11 +303,11 @@ module.exports = class VideoRenderer extends Renderer {
   /// Scheduling
 
   scheduleSegmentRender(segment, delay) {
+    super.scheduleSegmentRender(segment, delay);
+
     this.renderSegment(segment, {offset: delay});
 
     this.lastScheduleTime = new Date();
-
-    super.scheduleSegmentRender(segment, delay);
   }
 
   scheduleMediaSegment(segment, offset) {

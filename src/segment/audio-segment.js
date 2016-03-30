@@ -57,4 +57,10 @@ module.exports = class AudioSegment extends MediaSegment {
     return this;
   }
 
+  // Generators
+
+  simpleName() {
+    return `audio - ${this.filename}`;
+  }
+
 };

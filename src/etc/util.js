@@ -2,7 +2,8 @@
 module.exports = {
   choice: choice,
   shuffle: shuffle,
-  randInt: randInt
+  randInt: randInt,
+  splitArray: splitArray
 };
 
 function choice(arr) {
@@ -25,4 +26,23 @@ function randInt(min, max) {
   if (!max) max = 1000;
 
   return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function splitArray(arr, n) {
+  var arrs = [];
+
+  var currentArr = [];
+  for (var i = 0; i < arr.length; i++) {
+    currentArr.push(arr[i]);
+    if (currentArr.length === n) {
+      arrs.push(currentArr);
+      currentArr = [];
+    }
+  }
+
+  if (currentArr.length > 0) {
+    arrs.push(currentArr);
+  }
+
+  return arrs;
 }
