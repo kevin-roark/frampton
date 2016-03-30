@@ -18,3 +18,4 @@ As of now, setTimeouts are *not* supported in frampton's VideoRenderer. Implemen
 * ffmpeg
 * mediainfo
 * cairo
+* sox
