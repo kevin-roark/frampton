@@ -127,7 +127,6 @@ function run(command) {
     commandQueue.push(command);
     return;
   }
-
   commandsRunning += 1;
   exec(command, (err) => {
     if (err) {
