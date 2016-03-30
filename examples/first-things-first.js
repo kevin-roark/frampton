@@ -1,6 +1,7 @@
 
 var renderer = new frampton.Renderer({
-  mediaConfig: mediaConfig
+  mediaConfig: mediaConfig,
+  log: true
 });
 
 var indexSortedVideos = [];
@@ -9,7 +10,7 @@ var tagger = new frampton.Tagger(mediaConfig);
 var finder = new frampton.MediaFinder(mediaConfig);
 
 for (var idx = 1; idx <= maxScenes; idx++) {
-  var pattern = idx.toString() + '-';
+  var pattern = '/' + idx.toString() + '-';
   tagger.tagVideosWithPattern(pattern, pattern);
 
   var videos = frampton.mediaArranger.naturalLanguageSortedMedia(tagger.videosWithTag(pattern));
