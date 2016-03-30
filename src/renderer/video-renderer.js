@@ -227,8 +227,6 @@ module.exports = class VideoRenderer extends Renderer {
     // truly helpful: http://superuser.com/questions/716320/ffmpeg-placing-audio-at-specific-location
     // other resource: http://stackoverflow.com/questions/32988106/ffmpeg-replace-part-of-audio-in-mp4-video-file
 
-    // TODO: fade audio
-
     if (units.length === 0) {
       return videoFile;
     }
@@ -248,6 +246,12 @@ module.exports = class VideoRenderer extends Renderer {
       units.forEach((unit, idx) => {
         var segment = unit.segment;
         command += `[${idx+1}:a]atrim=${segment.startTime}:${segment.getDuration()}`;
+        if (segment.fadeInDuration) {
+          command += `,afade=t=in:st=0:d=${segment.fadeInDuration}`;
+        }
+        if (segment.fadeOutDuration) {
+          command += `,afade=t=out:st=${segment.getDuration() - segment.fadeOutDuration}:d=${segment.fadeOutDuration}`;
+        }
         if (unit.offset > 0) {
           command += `,adelay=${unit.offset}|${unit.offset}`; // supposed to be in ms wow!!
         }
