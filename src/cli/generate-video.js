@@ -1,7 +1,7 @@
 #!/usr/local/bin/node
 
 var fs = require('fs');
-var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 
 var args = process.argv.slice(2);
 if (args.length < 1) {
@@ -41,17 +41,17 @@ var tempMainFilename = __dirname + '/tempmain.js';
 fs.writeFileSync(tempMainFilename, mainJS);
 
 // run the renderer
-var mainCommand = `babel-node --presets es2015 ${tempMainFilename}`;
-exec(mainCommand, (error, stdout, stderr) => {
-  console.log(`videoRenderer stdout:\n${stdout}`);
+var mainCommand = spawn('babel-node', ['--presets', 'es2015', `${tempMainFilename}`]);
 
-  if (stderr) {
-    console.log(`videoRenderer stderr:\n${stderr}`);
-  }
+mainCommand.stdout.on('data', function(data) {
+  console.log(data.toString());
+});
+mainCommand.stderr.on('data', function(data) {
+  console.log(data.toString());
+});
 
-  if (error) {
-    console.log(`videoRenderer execution error:\n${error}`);
-  }
+mainCommand.on('exit', function(code) {
+  console.log(`rendered with exit code ${code}`);
 
   // clean up temporary files
   fs.unlinkSync(tempConfigFilename);
