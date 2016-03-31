@@ -14,6 +14,7 @@ module.exports = class VideoSegment extends VisualSegment {
     this.audioHandleMedia = options.audioHandleMedia;
     this.audioHandleSegmentOptions = options.audioHandleSegmentOptions || {};
     this.audioHandleFadeDuration = options.audioHandleFadeDuration || 0.25;
+    this.audioHandleStartTimeOffset = options.audioHandleStartTimeOffset || 0.0;
 
     if (this.audioHandleMedia) {
       this.volume = 0;
@@ -62,6 +63,11 @@ module.exports = class VideoSegment extends VisualSegment {
     return this;
   }
 
+  setAudioHandleStartTimeOffset(audioHandleStartTimeOffset) {
+    this.audioHandleStartTimeOffset = audioHandleStartTimeOffset;
+    return this;
+  }
+
   setVolume(volume) {
     this.volume = volume;
 
@@ -89,13 +95,12 @@ module.exports = class VideoSegment extends VisualSegment {
     }
 
     var audioHandleSegment = new AudioSegment(audioHandleOptions);
-    if (this.getDuration() !== this.videoDuration) {
-      audioHandleSegment.setDuration(this.getDuration() + this.audioHandleFadeDuration * 2);
-    }
+
     audioHandleSegment
-      .setStartTime(this.startTime)
-      .setPlaybackRate(this.playbackRate)
+      .setStartTime(this.startTime + this.audioHandleStartTimeOffset)
+      .setDuration(this.getDuration() + this.audioHandleFadeDuration * 2)
       .setFadeDuration(this.audioHandleFadeDuration)
+      .setPlaybackRate(this.playbackRate)
       .setLoop(this.loop);
 
     return [{

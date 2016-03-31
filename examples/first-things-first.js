@@ -33,8 +33,7 @@ while (hasMoreShots) {
       if (shotIndex > 1 && shotIndex < sceneShots.length - 1) {
         var audioHandleMedia = finder.findAudioHandleForVideo(shot);
         if (audioHandleMedia) {
-          segment.setAudioHandleMedia(audioHandleMedia);
-          segment.setAudioHandleFadeDuration(1.0);
+          segment.setAudioHandleMedia(audioHandleMedia).setAudioHandleFadeDuration(0.25).setAudioHandleStartTimeOffset(0.75);
         }
       }
 
