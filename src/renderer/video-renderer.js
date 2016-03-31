@@ -216,7 +216,8 @@ module.exports = class VideoRenderer extends Renderer {
     // concat to single video
     var concatVideoFilename = this.generateVideoFilename();
     var videoCodec = this.inputVideosHaveDifferentCodecs ? 'h264' : 'copy'; // way way way faster with copy
-    var command = `ffmpeg -f concat -i ${concatInfoFilename} -c:v ${videoCodec} -c:a copy -threads 0 ${concatVideoFilename}`;
+    var audioCodec = this.inputVideosHaveDifferentCodecs ? 'aac' : 'copy';
+    var command = `ffmpeg -f concat -i ${concatInfoFilename} -c:v ${videoCodec} -c:a ${audioCodec} -threads 0 ${concatVideoFilename}`;
     this.executeFFMPEGCommand(command);
 
     // remove concat info file

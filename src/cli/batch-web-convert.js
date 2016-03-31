@@ -4,6 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var exec = require('child_process').exec;
 var filesInPath = require('./files-in-path');
+var ncp = require('ncp');
 
 var args = process.argv.slice(2);
 
@@ -16,19 +17,21 @@ var videoDirectory = args[0];
 var outputDirectory = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : videoDirectory + '-converted';
 var makeWebm = args.indexOf('--webm') > 0;
 
-if (!fs.existsSync(outputDirectory)){
-  fs.mkdirSync(outputDirectory);
-}
-
 var files = filesInPath(videoDirectory, true);
 var itemsBeingProcessed = 0;
 var videoFileQueue = [];
 
-files.forEach(function(file) {
-  var videoExtensions = ['.mp4', '.avi', '.mov'];
-  if (videoExtensions.indexOf(path.extname(file)) >= 0) {
-    convertVideo(file);
+ncp(videoDirectory, outputDirectory, function(err) {
+  if (err) {
+    return console.error(err);
   }
+
+  files.forEach(function(file) {
+    var videoExtensions = ['.mp4', '.avi', '.mov'];
+    if (videoExtensions.indexOf(path.extname(file)) >= 0) {
+      convertVideo(file);
+    }
+  });
 });
 
 function convertVideo(filepath) {
