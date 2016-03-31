@@ -30,7 +30,7 @@ while (hasMoreShots) {
       var shot = sceneShots[shotIndex];
       var segment = new frampton.VideoSegment(shot);
 
-      if (shotIndex > 1) {
+      if (shotIndex > 1 && shotIndex < sceneShots.length - 1) {
         var audioHandleMedia = finder.findAudioHandleForVideo(shot);
         if (audioHandleMedia) {
           segment.setAudioHandleMedia(audioHandleMedia);

@@ -245,7 +245,7 @@ module.exports = class VideoRenderer extends Renderer {
       command += ` -filter_complex "`;
       units.forEach((unit, idx) => {
         var segment = unit.segment;
-        command += `[${idx+1}:a]atrim=${segment.startTime}:${segment.getDuration()}`;
+        command += `[${idx+1}:a]atrim=${segment.startTime}:${segment.getDuration()},asetpts=PTS-STARTPTS`;
         if (segment.fadeInDuration) {
           command += `,afade=t=in:st=0:d=${segment.fadeInDuration}`;
         }
