@@ -1,20 +1,26 @@
 
 var renderer = new frampton.Renderer({
   mediaConfig: mediaConfig,
+  enforceHardDurationLimit: false,
   log: true
 });
 
 var indexSortedVideos = [];
-var maxScenes = 4;
 var tagger = new frampton.Tagger(mediaConfig);
 var finder = new frampton.MediaFinder(mediaConfig);
 
-for (var idx = 1; idx <= maxScenes; idx++) {
+// tag videos until we don't find videos with pattern, meaning we have run out of scenes
+for (var idx = 1; true; idx++) {
   var pattern = '/' + idx.toString() + '-';
   tagger.tagVideosWithPattern(pattern, pattern);
 
   var videos = frampton.mediaArranger.naturalLanguageSortedMedia(tagger.videosWithTag(pattern));
-  indexSortedVideos.push(videos);
+  if (videos && videos.length > 0) {
+    indexSortedVideos.push(videos);
+  }
+  else {
+    break;
+  }
 }
 
 var segments = [];
