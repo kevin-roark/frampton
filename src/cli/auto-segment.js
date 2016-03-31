@@ -76,7 +76,7 @@ function run(command, callback) {
     if (err) {
       console.log(err);
     }
-
+    console.log(command);
     commandsRunning -= 1;
     if (commandQueue.length > 0) {
       var nextCommand = commandQueue.shift();

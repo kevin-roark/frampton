@@ -45,6 +45,7 @@ var commandQueue = [];
 var shotDataArray = Object.keys(shotData);
 var lastIdx = shotDataArray.length - 1;
 var msPerFrame = 41;
+offset = (offset * msPerFrame) / 1000;
 var startMultiplier = cutForPremiere ? 3 : 2;
 var normalMultiplier = cutForPremiere ? 2 : 1;
 
@@ -64,16 +65,16 @@ shotData.forEach(function(shot, idx) {
     audioStart = start;
 
     duration = shot.duration / 1000;
-    videoDuration = duration + videoHandleLength;
-    audioDuration = duration + audioHandleLength;
+    videoDuration = duration + videoHandleLength - offset;
+    audioDuration = duration + audioHandleLength - offset;
   }
   else if (idx === 1) {
     start = (shot.start - (startMultiplier  * msPerFrame))  / 1000;
     videoStart = start - videoHandleLength;
     audioStart = start - audioHandleLength;
     duration = (shot.duration + (2 * msPerFrame)) / 1000;
-    videoDuration = duration + videoHandleLength * 2;
-    audioDuration = duration + audioHandleLength * 2;
+    videoDuration = duration + videoHandleLength * 2 - offset;
+    audioDuration = duration + audioHandleLength * 2 - offset;
     if (videoStart < 0) {
       videoStart = 0;
       videoDuration = duration + videoHandleLength + shot.start;
@@ -89,8 +90,8 @@ shotData.forEach(function(shot, idx) {
     audioStart = start - audioHandleLength;
 
     duration = (shot.duration + (lastIdxMultiplier * msPerFrame)) / 1000; // premiere value is 3
-    videoDuration = duration + videoHandleLength;
-    audioDuration = duration + audioHandleLength;
+    videoDuration = duration + videoHandleLength  - offset;
+    audioDuration = duration + audioHandleLength  - offset;
   }
   else {
     start = Math.max(0, (shot.start - (startMultiplier * msPerFrame)) / 1000);
@@ -98,8 +99,8 @@ shotData.forEach(function(shot, idx) {
     audioStart = Math.max(0, start - audioHandleLength);
 
     duration = (shot.duration + (normalMultiplier * msPerFrame)) / 1000; // premiere value is 2
-    videoDuration = duration + 2 * videoHandleLength;
-    audioDuration = duration + 2 * audioHandleLength;
+    videoDuration = duration + 2 * videoHandleLength  - offset;
+    audioDuration = duration + 2 * audioHandleLength  - offset;
   }
 
   if (!noVideo) {
@@ -126,7 +127,6 @@ function run(command) {
     commandQueue.push(command);
     return;
   }
-
   commandsRunning += 1;
   exec(command, (err) => {
     if (err) {
