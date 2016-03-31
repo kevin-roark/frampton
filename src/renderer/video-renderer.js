@@ -14,6 +14,7 @@ module.exports = class VideoRenderer extends Renderer {
 
     this.maxVideoDuration = options.maxVideoDuration || 60 * 1000 * 15; // 15 minutes
     this.enforceHardDurationLimit = options.enforceHardDurationLimit !== undefined ? options.enforceHardDurationLimit : true;
+    this.inputVideosHaveDifferentCodecs = options.inputVideosHaveDifferentCodecs !== undefined ? options.inputVideosHaveDifferentCodecs : false;
 
     this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : (filename) => {
       return path.join(this.mediaConfig.path, filename);
@@ -182,7 +183,7 @@ module.exports = class VideoRenderer extends Renderer {
       // only perform the trim if *strictly* necessary
       if (start > 0 || duration < unit.segment.mediaDuration || unit.segment.volume < 1) {
         var filename = this.generateVideoFilename();
-        var command = `ffmpeg -ss ${start} -t ${duration} -i ${unit.currentFile} -af "volume=${unit.segment.volume}" -c:v copy ${filename}`;
+        var command = `ffmpeg -ss ${start} -t ${duration} -i ${unit.currentFile} -af "volume=${unit.segment.volume}" -c:v copy -threads 0 ${filename}`;
         this.executeFFMPEGCommand(command);
 
         unit.currentFile = filename;
@@ -214,7 +215,8 @@ module.exports = class VideoRenderer extends Renderer {
 
     // concat to single video
     var concatVideoFilename = this.generateVideoFilename();
-    var command = `ffmpeg -f concat -i ${concatInfoFilename} -c:v copy -c:a copy ${concatVideoFilename}`;
+    var videoCodec = this.inputVideosHaveDifferentCodecs ? 'h264' : 'copy'; // way way way faster with copy
+    var command = `ffmpeg -f concat -i ${concatInfoFilename} -c:v ${videoCodec} -c:a copy -threads 0 ${concatVideoFilename}`;
     this.executeFFMPEGCommand(command);
 
     // remove concat info file
@@ -233,7 +235,7 @@ module.exports = class VideoRenderer extends Renderer {
 
     var currentVideoFile = videoFile;
 
-    var unitChunks = util.splitArray(units, 25);
+    var unitChunks = util.splitArray(units, 31);
     unitChunks.forEach((units) => {
       var command = `ffmpeg -i ${currentVideoFile}`;
       units.forEach((unit) => {
@@ -263,7 +265,7 @@ module.exports = class VideoRenderer extends Renderer {
 
       var newVideoFile = this.generateVideoFilename();
       var numberOfInputs = units.length + 1;
-      command += `[0:a]${names}amix=inputs=${numberOfInputs},volume=${numberOfInputs}"  -map 0:v -c:v copy ${newVideoFile}`;
+      command += `[0:a]${names}amix=inputs=${numberOfInputs},volume=${numberOfInputs}"  -map 0:v -c:v copy -threads 0 ${newVideoFile}`;
       this.executeFFMPEGCommand(command);
 
       currentVideoFile = newVideoFile;
