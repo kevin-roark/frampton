@@ -233,6 +233,9 @@ module.exports = class VideoRenderer extends Renderer {
       return videoFile;
     }
 
+    // reverse units so that we are dealing the highest delayed items first
+    units.reverse();
+
     var currentVideoFile = videoFile;
 
     var unitChunks = util.splitArray(units, 31);
@@ -270,6 +273,8 @@ module.exports = class VideoRenderer extends Renderer {
 
       currentVideoFile = newVideoFile;
     });
+
+    units.reverse(); // revert units back to its initial state
 
     return currentVideoFile;
   }
