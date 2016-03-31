@@ -11,6 +11,7 @@ var args = process.argv.slice(2);
 var mediaPath = args.length > 0 ? args[0] : './media';
 var outputFilepath = args.indexOf('--out') >= 0 ? args[args.indexOf('--out') + 1] : './media_config.json';
 var durationErrorConstant = args.indexOf('--durationConstant') >= 0 ? Number(args[args.indexOf('--durationConstant') + 1]) : 0;
+var silent = args.indexOf('--silent') > 0;
 
 var config = {
   path: mediaPath,
@@ -33,6 +34,8 @@ files.forEach(function(file) {
 writeToFile();
 
 function addVideo(videoPath) {
+  log(`found video: ${videoPath}`);
+
   var duration = simpleAnalysis.getVideoDuration(videoPath);
   var volume = simpleAnalysis.getMediaVolume(videoPath);
 
@@ -45,6 +48,8 @@ function addVideo(videoPath) {
 }
 
 function addAudio(audioPath) {
+  log(`found audio: ${audioPath}`);
+
   var duration = simpleAnalysis.getAudioDuration(audioPath);
   var volume = simpleAnalysis.getMediaVolume(audioPath);
 
@@ -61,6 +66,8 @@ function filenameWithoutMediaDirectory(filename) {
 }
 
 function writeToFile() {
+  log('writing to file...');
+
   config.videos.sort(function(a, b) {
     return String.naturalCaseCompare(a.filename, b.filename);
   });
@@ -68,4 +75,10 @@ function writeToFile() {
   var jsonConfig = JSON.stringify(config);
   fs.writeFileSync(outputFilepath, jsonConfig);
   console.log(`generated config at ${outputFilepath}`);
+}
+
+function log(text) {
+  if (!silent) {
+    console.log(text);
+  }
 }
