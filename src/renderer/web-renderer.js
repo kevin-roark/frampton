@@ -250,8 +250,6 @@ module.exports = class WebRenderer extends Renderer {
   renderColorSegment(segment, {offset=0}) {
     var self = this;
 
-    var msPerFrame = segment.msDuration() / segment.numberOfColors();
-
     var div = document.createElement('div');
     div.className = 'frampton-video';
 
@@ -261,11 +259,21 @@ module.exports = class WebRenderer extends Renderer {
     if (segment.top) { div.style.top = segment.top; }
     if (segment.left) { div.style.left = segment.left; }
 
-    if (segment.transitionBetweenColors) { div.style.transition = `background-color ${Math.floor(msPerFrame*0.75)}ms`; }
+    if (segment.transitionBetweenColors) { div.style.transition = `background-color 5ms`; }
 
     var displayStyle = div.style.display || 'block';
     div.style.display = 'none';
     this.domContainer.appendChild(div);
+
+    var framesDataResponseCallback;
+    if (!segment.framesData) {
+      this.getJSON(this.videoSourceMaker(segment.filename), (framesData) => {
+        segment.setFramesData(framesData);
+
+        if (framesDataResponseCallback) framesDataResponseCallback();
+        framesDataResponseCallback = null;
+      });
+    }
 
     if (offset > 0) {
       setTimeout(start, offset);
@@ -275,6 +283,11 @@ module.exports = class WebRenderer extends Renderer {
     }
 
     function start() {
+      if (!segment.framesData) {
+        framesDataResponseCallback = () => { start(); };
+        return;
+      }
+
       div.style.display = displayStyle;
 
       self.setVisualSegmentOpacity(segment, div);
@@ -487,6 +500,20 @@ module.exports = class WebRenderer extends Renderer {
     segment.addChangeHandler('opacity', function(opacity) {
       el.style.opacity = opacity;
     });
+  }
+
+  getJSON(url, callback) {
+    if (!callback) return;
+
+    var request = new XMLHttpRequest();
+    request.open('GET', url, true);
+
+    request.onload = function() {
+      var data = JSON.parse(request.responseText);
+      callback(data);
+    };
+
+    request.send();
   }
 
 };
