@@ -43,6 +43,13 @@ function convertVideo(filepath) {
   itemsBeingProcessed += 1;
 
   var extensionFreeFilename = path.basename(filepath, path.extname(filepath));
+
+  var directoryName = path.dirname(filepath);
+  directoryName = directoryName.substring(videoDirectory.length);
+  if (directoryName.length > 0) {
+    extensionFreeFilename = path.join(directoryName, extensionFreeFilename);
+  }
+
   var outputMP4Filepath = path.join(outputDirectory, `${extensionFreeFilename}.mp4`);
 
   console.log(`converting ${filepath} to web mp4...`);
