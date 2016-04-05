@@ -2,6 +2,7 @@
 
 var fs = require('fs');
 var path = require('path');
+var jsonfile = require('jsonfile');
 var filesInPath = require('./files-in-path');
 var simpleAnalysis = require('../analysis/simple-analysis');
 require('string-natural-compare');
@@ -16,7 +17,8 @@ var silent = args.indexOf('--silent') > 0;
 var config = {
   path: mediaPath,
   videos: [],
-  audio: []
+  audio: [],
+  frames: []
 };
 
 var files = filesInPath(config.path, true);
@@ -28,6 +30,9 @@ files.forEach(function(file) {
   }
   else if (extname === '.mp3') {
     addAudio(file);
+  }
+  else if (file.indexOf('.frames.json') > 0) {
+    addFrames(file);
   }
 });
 
@@ -57,6 +62,20 @@ function addAudio(audioPath) {
     filename: filenameWithoutMediaDirectory(audioPath),
     duration: duration + durationErrorConstant,
     volumeInfo: volume,
+    tags: []
+  });
+}
+
+function addFrames(framesPath) {
+  log(`found frames: ${framesPath}`);
+
+  var framesData = jsonfile.readFileSync(framesPath);
+
+  config.frames.push({
+    filename: filenameWithoutMediaDirectory(framesPath),
+    duration: framesData.duration + durationErrorConstant,
+    fps: framesData.fps,
+    numberOfFrames: framesData.numberOfFrames,
     tags: []
   });
 }
