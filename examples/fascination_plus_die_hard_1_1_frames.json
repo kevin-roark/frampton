@@ -1,0 +1,20 @@
+{
+  "path": "great_media",
+  "videos": [],
+  "audio": [{
+    "filename": "fascination.mp3",
+    "duration": 262.451995,
+    "volumeInfo": {
+      "mean": -11.4,
+      "max": 0
+    },
+    "tags": []
+  }],
+  "frames": [{
+    "filename": "die_hard_1_1.frames.json",
+    "duration": 41.834,
+    "fps": 23.976,
+    "numberOfFrames": 1003,
+    "tags": []
+  }]
+}

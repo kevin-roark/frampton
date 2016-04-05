@@ -9,6 +9,13 @@ function getVideoDuration(videoPath) {
   return duration;
 }
 
+function getVideoFrameRate(videoPath) {
+  var mediainfoCommand = `mediainfo --Inform="General;%FrameRate%" ${videoPath}`;
+  var frameRate = parseFloat(execSync(mediainfoCommand).toString());
+
+  return frameRate;
+}
+
 function getAudioDuration(audioPath) {
   var soxiCommand = `soxi -D ${audioPath}`;
   var duration = parseFloat(execSync(soxiCommand).toString());
@@ -46,5 +53,6 @@ function getMediaVolume(videoPath) {
 }
 
 module.exports.getVideoDuration = getVideoDuration;
+module.exports.getVideoFrameRate = getVideoFrameRate;
 module.exports.getAudioDuration = getAudioDuration;
 module.exports.getMediaVolume = getMediaVolume;

@@ -6,10 +6,10 @@ var renderer = new frampton.Renderer({
 var colorSegmentOptions = {loop: true, transitionBetweenColors: false, playbackRate: 1};
 var audioSegmentOptions = {loop: true, playbackRate: 1};
 
-var color = frampton.util.choice(mediaConfig.colors);
-for (var key in color) {
-  if (color.hasOwnProperty(key)) {
-    colorSegmentOptions[key] = color[key];
+var framesData = frampton.util.choice(mediaConfig.frames);
+for (var key in framesData) {
+  if (framesData.hasOwnProperty(key)) {
+    colorSegmentOptions[key] = framesData[key];
   }
 }
 
