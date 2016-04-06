@@ -12,6 +12,9 @@
   },
   "author": "kevin roark",
   "license": "ISC",
+  "scripts": {
+    "build": "babel src -d dist --presets es2015"
+  },
   "bugs": {
     "url": "https://github.com/kevin-roark/frampton/issues"
   },
