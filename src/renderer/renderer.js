@@ -35,6 +35,7 @@ module.exports = class Renderer {
   /// Rendering
 
   renderVideoSegment() {}
+  renderImageSegment() {}
   renderColorSegment() {}
   renderAudioSegment() {}
 
@@ -42,6 +43,10 @@ module.exports = class Renderer {
     switch (segment.segmentType) {
       case 'video':
         this.renderVideoSegment(segment, options);
+        break;
+
+      case 'image':
+        this.renderImageSegment(segment, options);
         break;
 
       case 'color':

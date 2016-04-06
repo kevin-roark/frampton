@@ -180,12 +180,26 @@ module.exports = class VideoRenderer extends Renderer {
 
       duration = duration / 1000;
 
-      // only perform the trim if *strictly* necessary
-      if (start > 0 || duration < unit.segment.mediaDuration || unit.segment.volume < 1) {
-        var filename = this.generateVideoFilename();
-        var command = `ffmpeg -ss ${start} -t ${duration} -i ${unit.currentFile} -af "volume=${unit.segment.volume}" -c:v copy -threads 0 ${filename}`;
-        this.executeFFMPEGCommand(command);
+      let filename, command;
+      switch (unit.segment.segmentType) {
+        case 'image':
+          filename = this.generateVideoFilename();
+          command = `ffmpeg -loop 1 -i ${unit.currentFile} -t ${duration} -c:v h264 -c:a aac -threads 0 ${filename}`;
+          break;
 
+        case 'video':
+          // only perform the trim if *strictly* necessary
+          if (start > 0 || duration < unit.segment.mediaDuration || unit.segment.volume < 1) {
+            filename = this.generateVideoFilename();
+            command = `ffmpeg -ss ${start} -t ${duration} -i ${unit.currentFile} -af "volume=${unit.segment.volume}" -t ${duration} -c:v h264 -c:a aac -threads 0 ${filename}`;
+          }
+          break;
+
+        default: break;
+      }
+
+      if (filename && command) {
+        this.executeFFMPEGCommand(command);
         unit.currentFile = filename;
       }
     }
@@ -383,6 +397,10 @@ module.exports = class VideoRenderer extends Renderer {
   /// Rendering
 
   renderVideoSegment(segment, options) {
+    this.renderMediaSegment(segment, options);
+  }
+
+  renderImageSegment(segment, options) {
     this.renderMediaSegment(segment, options);
   }
 
