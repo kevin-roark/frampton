@@ -202,6 +202,53 @@ module.exports = class VideoRenderer extends Renderer {
 
   concatenateFiles(files) {
     // https://trac.ffmpeg.org/wiki/Concatenate
+    if (this.inputVideosHaveDifferentCodecs) {
+      return this.concatenateFilesWithConcatFilter(files);
+    }
+    else {
+      return this.concatenateFilesWithConcatCommand(files);
+    }
+  }
+
+  concatenateFilesWithConcatFilter(files) {
+    var concat = (arr) => {
+      var newFiles = [];
+
+      var chunks = util.splitArray(arr, 32);
+      chunks.forEach((chunk) => {
+        var command = `ffmpeg `;
+
+        chunk.forEach((file) => {
+          command += `-i ${file} `;
+        });
+
+        command += ` -filter_complex "`;
+
+        chunk.forEach((file, i) => {
+          command += `[${i}:v:0] [${i}:a:0] `;
+        });
+
+        var filename = this.generateVideoFilename();
+        command += `concat=n=${chunk.length}:v=1:a=1 [v] [a]"`;
+        command += ` -map "[v]" -map "[a]" -c:v h264 -c:a aac ${filename}`;
+        this.executeFFMPEGCommand(command);
+
+        newFiles.push(filename);
+      });
+
+      return newFiles;
+    };
+
+    var concatFiles = files;
+    while (concatFiles.length > 1) {
+      concatFiles = concat(concatFiles);
+    }
+
+    return concatFiles[0];
+  }
+
+  concatenateFilesWithConcatCommand(files) {
+    var concatVideoFilename = this.generateVideoFilename();
 
     // one video per line
     var concatInfo = '';
@@ -214,10 +261,7 @@ module.exports = class VideoRenderer extends Renderer {
     fs.writeFileSync(concatInfoFilename, concatInfo);
 
     // concat to single video
-    var concatVideoFilename = this.generateVideoFilename();
-    var videoCodec = this.inputVideosHaveDifferentCodecs ? 'h264' : 'copy'; // way way way faster with copy
-    var audioCodec = this.inputVideosHaveDifferentCodecs ? 'aac' : 'copy';
-    var command = `ffmpeg -f concat -i ${concatInfoFilename} -c:v ${videoCodec} -c:a ${audioCodec} -threads 0 ${concatVideoFilename}`;
+    var command = `ffmpeg -f concat -i ${concatInfoFilename} -c:v copy -c:a copy -threads 0 ${concatVideoFilename}`;
     this.executeFFMPEGCommand(command);
 
     // remove concat info file
