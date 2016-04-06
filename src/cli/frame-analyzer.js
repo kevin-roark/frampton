@@ -13,8 +13,9 @@ var frameAnalysis = require('../analysis/frame-analysis');
 
   var video = args[0];
   var outFile = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : 'frampton.frames.json';
+  var removeImages = args.indexOf('--keepImages') < 0;
 
-  frameAnalysis.analyzeVideoFrames(video, {}, (frameData) => {
+  frameAnalysis.analyzeVideoFrames(video, {removeImages: removeImages}, (frameData) => {
     fs.writeFileSync(outFile, JSON.stringify(frameData));
 
     console.log(`analyzed frames of ${video} written to ${outFile}`);
