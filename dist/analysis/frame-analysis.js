@@ -41,8 +41,15 @@ function analyzeVideoFrames(video) {
 
   var videoDuration = simpleAnalysis.getVideoDuration(video);
   var fps = simpleAnalysis.getVideoFrameRate(video);
-  var framesPerSplit = options.framesPerSplit;
   var totalFrames = Math.floor(fps * videoDuration);
+
+  var removeImages = options.removeImages !== undefined ? options.removeImages : true;
+  var framesPerSplit = options.framesPerSplit;
+  var outDirectory = options.outDirectory;
+  if (!framesPerSplit && !removeImages) {
+    framesPerSplit = totalFrames;
+    outDirectory = path.basename(video, path.extname(video)) + '-frames';
+  }
 
   var frames = [];
   doNextSplit();
@@ -71,11 +78,14 @@ function analyzeVideoFrames(video) {
     callback(videoFrameData);
   }
 
-  function split(startFrame, callback) {
+  function split(startFrame) {
+    var callback = arguments.length <= 1 || arguments[1] === undefined ? function () {} : arguments[1];
+
     var splitOut = _splitVideoIntoFrames(video, {
+      fps: fps,
       startFrame: startFrame,
       numberOfFrames: framesPerSplit,
-      fps: fps
+      outDirectory: outDirectory
     });
 
     splitOut.files.forEach(function (image) {
@@ -83,12 +93,20 @@ function analyzeVideoFrames(video) {
       frameData.frameIndex = frames.length;
       frameData.timecode = frameData.frameIndex / fps; // this is easily calculable in a client, maybe not necessary
 
+      if (!removeImages) {
+        frameData.imageFilename = image;
+      }
+
+      console.log('analyzed frame ' + frames.length + ': ' + image);
+
       frames.push(frameData);
     });
 
-    rimraf(splitOut.directory, { disableGlob: true }, function () {
-      if (callback) callback();
-    });
+    if (removeImages) {
+      rimraf(splitOut.directory, { disableGlob: true }, callback);
+    } else {
+      callback();
+    }
   }
 }
 

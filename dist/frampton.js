@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = {
-  Segment: require('./segment/segment'),
   VideoSegment: require('./segment/video-segment'),
+  ImageSegment: require('./segment/image-segment'),
   ColorSegment: require('./segment/color-segment'),
   AudioSegment: require('./segment/audio-segment'),
 

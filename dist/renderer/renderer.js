@@ -48,6 +48,9 @@ module.exports = function () {
     key: 'renderVideoSegment',
     value: function renderVideoSegment() {}
   }, {
+    key: 'renderImageSegment',
+    value: function renderImageSegment() {}
+  }, {
     key: 'renderColorSegment',
     value: function renderColorSegment() {}
   }, {
@@ -61,6 +64,10 @@ module.exports = function () {
       switch (segment.segmentType) {
         case 'video':
           this.renderVideoSegment(segment, options);
+          break;
+
+        case 'image':
+          this.renderImageSegment(segment, options);
           break;
 
         case 'color':

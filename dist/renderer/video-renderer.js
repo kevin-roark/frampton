@@ -207,12 +207,28 @@ module.exports = function (_Renderer) {
 
         duration = duration / 1000;
 
-        // only perform the trim if *strictly* necessary
-        if (start > 0 || duration < unit.segment.mediaDuration || unit.segment.volume < 1) {
-          var filename = this.generateVideoFilename();
-          var command = 'ffmpeg -ss ' + start + ' -t ' + duration + ' -i ' + unit.currentFile + ' -af "volume=' + unit.segment.volume + '" -c:v copy -threads 0 ' + filename;
-          this.executeFFMPEGCommand(command);
+        var filename = undefined,
+            command = undefined;
+        switch (unit.segment.segmentType) {
+          case 'image':
+            filename = this.generateVideoFilename();
+            command = 'ffmpeg -loop 1 -i ' + unit.currentFile + ' -t ' + duration + ' -c:v h264 -c:a aac -threads 0 ' + filename;
+            break;
 
+          case 'video':
+            // only perform the trim if *strictly* necessary
+            if (start > 0 || duration < unit.segment.mediaDuration || unit.segment.volume < 1) {
+              filename = this.generateVideoFilename();
+              command = 'ffmpeg -ss ' + start + ' -t ' + duration + ' -i ' + unit.currentFile + ' -af "volume=' + unit.segment.volume + '" -t ' + duration + ' -c:v h264 -c:a aac -threads 0 ' + filename;
+            }
+            break;
+
+          default:
+            break;
+        }
+
+        if (filename && command) {
+          this.executeFFMPEGCommand(command);
           unit.currentFile = filename;
         }
       }
@@ -231,6 +247,56 @@ module.exports = function (_Renderer) {
     key: 'concatenateFiles',
     value: function concatenateFiles(files) {
       // https://trac.ffmpeg.org/wiki/Concatenate
+      if (this.inputVideosHaveDifferentCodecs) {
+        return this.concatenateFilesWithConcatFilter(files);
+      } else {
+        return this.concatenateFilesWithConcatCommand(files);
+      }
+    }
+  }, {
+    key: 'concatenateFilesWithConcatFilter',
+    value: function concatenateFilesWithConcatFilter(files) {
+      var _this5 = this;
+
+      var concat = function concat(arr) {
+        var newFiles = [];
+
+        var chunks = util.splitArray(arr, 32);
+        chunks.forEach(function (chunk) {
+          var command = 'ffmpeg ';
+
+          chunk.forEach(function (file) {
+            command += '-i ' + file + ' ';
+          });
+
+          command += ' -filter_complex "';
+
+          chunk.forEach(function (file, i) {
+            command += '[' + i + ':v:0] [' + i + ':a:0] ';
+          });
+
+          var filename = _this5.generateVideoFilename();
+          command += 'concat=n=' + chunk.length + ':v=1:a=1 [v] [a]"';
+          command += ' -map "[v]" -map "[a]" -c:v h264 -c:a aac ' + filename;
+          _this5.executeFFMPEGCommand(command);
+
+          newFiles.push(filename);
+        });
+
+        return newFiles;
+      };
+
+      var concatFiles = files;
+      while (concatFiles.length > 1) {
+        concatFiles = concat(concatFiles);
+      }
+
+      return concatFiles[0];
+    }
+  }, {
+    key: 'concatenateFilesWithConcatCommand',
+    value: function concatenateFilesWithConcatCommand(files) {
+      var concatVideoFilename = this.generateVideoFilename();
 
       // one video per line
       var concatInfo = '';
@@ -243,10 +309,7 @@ module.exports = function (_Renderer) {
       fs.writeFileSync(concatInfoFilename, concatInfo);
 
       // concat to single video
-      var concatVideoFilename = this.generateVideoFilename();
-      var videoCodec = this.inputVideosHaveDifferentCodecs ? 'h264' : 'copy'; // way way way faster with copy
-      var audioCodec = this.inputVideosHaveDifferentCodecs ? 'aac' : 'copy';
-      var command = 'ffmpeg -f concat -i ' + concatInfoFilename + ' -c:v ' + videoCodec + ' -c:a ' + audioCodec + ' -threads 0 ' + concatVideoFilename;
+      var command = 'ffmpeg -f concat -i ' + concatInfoFilename + ' -c:v copy -c:a copy -threads 0 ' + concatVideoFilename;
       this.executeFFMPEGCommand(command);
 
       // remove concat info file
@@ -257,7 +320,7 @@ module.exports = function (_Renderer) {
   }, {
     key: 'mixAudioUnits',
     value: function mixAudioUnits(videoFile, units) {
-      var _this5 = this;
+      var _this6 = this;
 
       // truly helpful: http://superuser.com/questions/716320/ffmpeg-placing-audio-at-specific-location
       // other resource: http://stackoverflow.com/questions/32988106/ffmpeg-replace-part-of-audio-in-mp4-video-file
@@ -299,10 +362,10 @@ module.exports = function (_Renderer) {
           names += name;
         });
 
-        var newVideoFile = _this5.generateVideoFilename();
+        var newVideoFile = _this6.generateVideoFilename();
         var numberOfInputs = units.length + 1;
         command += '[0:a]' + names + 'amix=inputs=' + numberOfInputs + ',volume=' + numberOfInputs + '"  -map 0:v -c:v copy -threads 0 ' + newVideoFile;
-        _this5.executeFFMPEGCommand(command);
+        _this6.executeFFMPEGCommand(command);
 
         currentVideoFile = newVideoFile;
       });
@@ -382,6 +445,11 @@ module.exports = function (_Renderer) {
   }, {
     key: 'renderVideoSegment',
     value: function renderVideoSegment(segment, options) {
+      this.renderMediaSegment(segment, options);
+    }
+  }, {
+    key: 'renderImageSegment',
+    value: function renderImageSegment(segment, options) {
       this.renderMediaSegment(segment, options);
     }
   }, {
