@@ -8,6 +8,7 @@ module.exports = {
   SequencedSegment: require('./segment/sequenced-segment'),
   StackedSegment: require('./segment/stacked-segment'),
   finiteLoopingSegment: require('./segment/finite-looping-segment'),
+  sequencedSegmentFromFrames: require('./segment/sequenced-segment-from-frames'),
 
   Renderer: require('./renderer/renderer'),
 
