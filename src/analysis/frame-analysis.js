@@ -68,7 +68,8 @@ function analyzeVideoFrames(video, options={}, callback=()=>{}) {
   function split(startFrame, callback) {
     var splitOut = _splitVideoIntoFrames(video, {
       startFrame: startFrame,
-      numberOfFrames: framesPerSplit
+      numberOfFrames: framesPerSplit,
+      fps: fps
     });
 
     splitOut.files.forEach((image) => {
