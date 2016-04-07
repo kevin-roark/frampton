@@ -184,7 +184,7 @@ module.exports = class VideoRenderer extends Renderer {
       switch (unit.segment.segmentType) {
         case 'image':
           filename = this.generateVideoFilename();
-          command = `ffmpeg -loop 1 -i ${unit.currentFile} -t ${duration} -c:v h264 -c:a aac -threads 0 ${filename}`;
+          command = `ffmpeg -f lavfi -i aevalsrc=0 -loop 1 -i ${unit.currentFile} -t ${duration} -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -pix_fmt yuv420p -c:v h264 -c:a aac -threads 0 ${filename}`;
           break;
 
         case 'video':
