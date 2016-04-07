@@ -7,6 +7,7 @@ var ColorThief = require('color-thief');
 var rimraf = require('rimraf');
 var filesInPath = require('../cli/files-in-path');
 var simpleAnalysis = require('./simple-analysis');
+require('string-natural-compare');
 
 var colorThief = new ColorThief();
 
@@ -138,12 +139,15 @@ function _splitVideoIntoFrames(video, options) {
 
   var start = startFrame / fps;
   var duration = numberOfFrames / fps;
-  var command = 'ffmpeg -ss ' + start + ' -t ' + duration + ' -i ' + video + ' -vf scale=480:-1 ' + outFileFormat;
+  var command = 'ffmpeg -ss ' + start + ' -t ' + duration + ' -i ' + video + ' -vf scale=480:-2 ' + outFileFormat;
   _executeFFMPEGCommand(command);
+
+  var files = filesInPath(outDirectory, true);
+  files.sort(String.naturalCaseCompare);
 
   return {
     directory: outDirectory,
-    files: filesInPath(outDirectory, true)
+    files: files
   };
 }
 

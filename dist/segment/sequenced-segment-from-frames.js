@@ -1,6 +1,7 @@
 'use strict';
 
 var VideoSegment = require('./video-segment');
+var ImageSegment = require('./image-segment');
 var SequencedSegment = require('./sequenced-segment');
 
 module.exports = function sequencedSegmentFromFrames(framesData) {
@@ -8,6 +9,7 @@ module.exports = function sequencedSegmentFromFrames(framesData) {
 
   var firstFrameIndex = options.firstFrameIndex || 0;
   var numberOfFrames = options.numberOfFrames || framesData.frames.length;
+  var cutVideos = options.cutVideos || false;
 
   var frameDuration = 1 / framesData.fps;
 
@@ -16,10 +18,19 @@ module.exports = function sequencedSegmentFromFrames(framesData) {
   for (var i = firstFrameIndex; i < numberOfFrames; i++) {
     var frame = framesData.frames[i];
 
-    var videoSegment = new VideoSegment(framesData);
-    videoSegment.setStartTime(frame.timecode).setDuration(frameDuration);
+    if (cutVideos) {
+      var videoSegment = new VideoSegment(framesData);
+      videoSegment.setStartTime(frame.timecode).setDuration(frameDuration);
 
-    segments.push(videoSegment);
+      segments.push(videoSegment);
+    } else {
+      var imageSegment = new ImageSegment({
+        filename: frame.imageFilename,
+        duration: frameDuration
+      });
+
+      segments.push(imageSegment);
+    }
   }
 
   // put segments in given options array to allow arbitrary options-passing to SequencedSegment
