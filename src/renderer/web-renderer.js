@@ -267,6 +267,9 @@ module.exports = class WebRenderer extends Renderer {
 
     var framesDataResponseCallback;
     if (!segment.framesData) {
+      if (this.log) {
+        console.log(`loading color frames for: ${segment.filename}`);
+      }
       this.getJSON(this.videoSourceMaker(segment.filename), (framesData) => {
         segment.setFramesData(framesData);
 
@@ -286,6 +289,10 @@ module.exports = class WebRenderer extends Renderer {
       if (!segment.framesData) {
         framesDataResponseCallback = () => { start(); };
         return;
+      }
+
+      if (self.log) {
+        console.log(`displaying colors for: ${segment.filename}`);
       }
 
       div.style.display = displayStyle;
@@ -448,6 +455,10 @@ module.exports = class WebRenderer extends Renderer {
       }
 
       setTimeout(end, endTimeout);
+
+      if (self.log) {
+        console.log(`audio is playing for ${segment.filename}`);
+      }
     }, false);
 
     setTimeout(start, offset - this.startPerceptionCorrection);
@@ -472,6 +483,10 @@ module.exports = class WebRenderer extends Renderer {
             .to({volume: 0}, fadeOutDuration)
             .start();
         }, segmentDuration - fadeOutDuration);
+      }
+
+      if (self.log) {
+        console.log(`started playing audio for: ${segment.filename}`);
       }
 
       segment.didStart();
