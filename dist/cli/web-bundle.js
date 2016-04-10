@@ -26,7 +26,7 @@ var uglifyify = require('uglifyify');
   var onlyCopyScore = args.indexOf('--onlyscore') >= 0;
   var allowAllBrowsers = args.indexOf('--allbrowsers') >= 0;
 
-  var score = fs.readFileSync(scoreFilePath).toString().replace('frampton.Renderer', 'frampton.WebRenderer');
+  var score = fs.readFileSync(scoreFilePath).toString().replace('frampton.Renderer', 'frampton.WebRenderer').replace('frampton.VideoRenderer', 'frampton.WebRenderer');
 
   var mainJS = '\n    (function() {\n      var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);\n      if (!isChrome && !' + allowAllBrowsers + ') {\n        console.log(\'only chrome is supported for now...\');\n        return;\n      }\n\n      var frampton = require(\'../../src/web-frampton\');\n      var mediaConfig = require(\'./media_config.json\');\n\n      ' + score + '\n    })();\n\n  ';
 

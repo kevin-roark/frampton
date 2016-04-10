@@ -6,7 +6,7 @@ var Converter = require('csvtojson').Converter;
 var args = process.argv.slice(2);
 
 var csvPath = args.length > 0 ? args[0] : 'csv.csv';
-var outputFilepath = args.indexOf('--out') >= 0 ? args[args.indexOf('--out') + 1] : './csv_config.json';
+var outputFilepath = args.indexOf('--out') >= 0 ? args[args.indexOf('--out') + 1] : 'csv_config.json';
 var silent = args.indexOf('--silent') > 0;
 var fps = args.indexOf('--fps') > 0 ? parseFloat(args[args.indexOf('--fps') + 1]) : 30;
 

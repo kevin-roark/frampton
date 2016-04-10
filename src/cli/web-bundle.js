@@ -26,7 +26,8 @@ var uglifyify = require('uglifyify');
   var allowAllBrowsers = args.indexOf('--allbrowsers') >= 0;
 
   var score = fs.readFileSync(scoreFilePath).toString()
-              .replace('frampton.Renderer', 'frampton.WebRenderer');
+              .replace('frampton.Renderer', 'frampton.WebRenderer')
+              .replace('frampton.VideoRenderer', 'frampton.WebRenderer');
 
   var mainJS = `
     (function() {
