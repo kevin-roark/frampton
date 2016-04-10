@@ -30,6 +30,8 @@ module.exports = function (_Renderer) {
     _this.maxVideoDuration = options.maxVideoDuration || 60 * 1000 * 15; // 15 minutes
     _this.enforceHardDurationLimit = options.enforceHardDurationLimit !== undefined ? options.enforceHardDurationLimit : true;
     _this.inputVideosHaveDifferentCodecs = options.inputVideosHaveDifferentCodecs !== undefined ? options.inputVideosHaveDifferentCodecs : false;
+    _this.stripAudioFromAllVideos = options.stripAudioFromAllVideos !== undefined ? options.stripAudioFromAllVideos : false;
+    _this.preferredVideoScale = options.preferredVideoScale;
 
     _this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : function (filename) {
       return path.join(_this.mediaConfig.path, filename);
@@ -247,7 +249,7 @@ module.exports = function (_Renderer) {
     key: 'concatenateFiles',
     value: function concatenateFiles(files) {
       // https://trac.ffmpeg.org/wiki/Concatenate
-      if (this.inputVideosHaveDifferentCodecs) {
+      if (this.inputVideosHaveDifferentCodecs || this.stripAudioFromAllVideos) {
         return this.concatenateFilesWithConcatFilter(files);
       } else {
         return this.concatenateFilesWithConcatCommand(files);
@@ -257,6 +259,8 @@ module.exports = function (_Renderer) {
     key: 'concatenateFilesWithConcatFilter',
     value: function concatenateFilesWithConcatFilter(files) {
       var _this5 = this;
+
+      var includeAudio = !this.stripAudioFromAllVideos;
 
       var concat = function concat(arr) {
         var newFiles = [];
@@ -271,13 +275,26 @@ module.exports = function (_Renderer) {
 
           command += ' -filter_complex "';
 
+          var videoTrackNames = [];
           chunk.forEach(function (file, i) {
-            command += '[' + i + ':v:0] [' + i + ':a:0] ';
+            var video = '[' + i + ':v:0]';
+            if (_this5.preferredVideoScale) {
+              var scaledVideo = '[vv' + i + ']';
+              command += video + 'scale=' + _this5.preferredVideoScale + ',setsar=1:1' + scaledVideo + '; ';
+              video = scaledVideo;
+            }
+
+            videoTrackNames.push(video);
+          });
+
+          chunk.forEach(function (file, i) {
+            var video = videoTrackNames[i];
+            command += includeAudio ? video + ' [' + i + ':a:0] ' : video + ' ';
           });
 
           var filename = _this5.generateVideoFilename();
-          command += 'concat=n=' + chunk.length + ':v=1:a=1 [v] [a]"';
-          command += ' -map "[v]" -map "[a]" -c:v h264 -c:a aac ' + filename;
+          command += includeAudio ? 'concat=n=' + chunk.length + ':v=1:a=1"' : 'concat=n=' + chunk.length + ':v=1:a=0"';
+          command += includeAudio ? ' -c:v h264 -c:a aac ' + filename : ' -c:v h264 ' + filename;
           _this5.executeFFMPEGCommand(command);
 
           newFiles.push(filename);

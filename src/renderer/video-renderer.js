@@ -15,6 +15,8 @@ module.exports = class VideoRenderer extends Renderer {
     this.maxVideoDuration = options.maxVideoDuration || 60 * 1000 * 15; // 15 minutes
     this.enforceHardDurationLimit = options.enforceHardDurationLimit !== undefined ? options.enforceHardDurationLimit : true;
     this.inputVideosHaveDifferentCodecs = options.inputVideosHaveDifferentCodecs !== undefined ? options.inputVideosHaveDifferentCodecs : false;
+    this.stripAudioFromAllVideos = options.stripAudioFromAllVideos !== undefined ? options.stripAudioFromAllVideos : false;
+    this.preferredVideoScale = options.preferredVideoScale;
 
     this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : (filename) => {
       return path.join(this.mediaConfig.path, filename);
@@ -216,7 +218,7 @@ module.exports = class VideoRenderer extends Renderer {
 
   concatenateFiles(files) {
     // https://trac.ffmpeg.org/wiki/Concatenate
-    if (this.inputVideosHaveDifferentCodecs) {
+    if (this.inputVideosHaveDifferentCodecs || this.stripAudioFromAllVideos) {
       return this.concatenateFilesWithConcatFilter(files);
     }
     else {
@@ -225,6 +227,8 @@ module.exports = class VideoRenderer extends Renderer {
   }
 
   concatenateFilesWithConcatFilter(files) {
+    var includeAudio = !this.stripAudioFromAllVideos;
+
     var concat = (arr) => {
       var newFiles = [];
 
@@ -238,13 +242,26 @@ module.exports = class VideoRenderer extends Renderer {
 
         command += ` -filter_complex "`;
 
+        var videoTrackNames = [];
         chunk.forEach((file, i) => {
-          command += `[${i}:v:0] [${i}:a:0] `;
+          var video = `[${i}:v:0]`;
+          if (this.preferredVideoScale) {
+            var scaledVideo = `[vv${i}]`;
+            command += `${video}scale=${this.preferredVideoScale},setsar=1:1${scaledVideo}; `;
+            video = scaledVideo;
+          }
+
+          videoTrackNames.push(video);
+        });
+
+        chunk.forEach((file, i) => {
+          var video = videoTrackNames[i];
+          command += includeAudio ? `${video} [${i}:a:0] ` : `${video} `;
         });
 
         var filename = this.generateVideoFilename();
-        command += `concat=n=${chunk.length}:v=1:a=1 [v] [a]"`;
-        command += ` -map "[v]" -map "[a]" -c:v h264 -c:a aac ${filename}`;
+        command += includeAudio ? `concat=n=${chunk.length}:v=1:a=1"` : `concat=n=${chunk.length}:v=1:a=0"`;
+        command += includeAudio ? ` -c:v h264 -c:a aac ${filename}` : ` -c:v h264 ${filename}`;
         this.executeFFMPEGCommand(command);
 
         newFiles.push(filename);
