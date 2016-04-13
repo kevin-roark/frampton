@@ -13,8 +13,9 @@ var mediaPath = args.length > 0 ? args[0] : './media';
 var silent = args.indexOf('--silent') > 0;
 var startIndex = args.indexOf('--index') >= 0 ? Number(args[args.indexOf('--index') + 1]) : 0;
 
-var namePattern = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
 
+var seedPattern = ["A","Bb","B","C","Db","D","Eb","E","F","Gb","G","Ab"]; // ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+var namePattern = seedPattern;
 
 var files = filesInPath(mediaPath, true);
 
@@ -34,7 +35,7 @@ function renameFilePattern(file){
   namePattern.splice(0,1);
 
   if (namePattern.length < 1){
-    namePattern = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+    namePattern = seedPattern;
     startIndex += 1;
   }
 
