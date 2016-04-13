@@ -86,6 +86,7 @@ function analyzeVideoFrames(video) {
       fps: fps,
       startFrame: startFrame,
       numberOfFrames: framesPerSplit,
+      scaleImages: options.scaleImages,
       outDirectory: outDirectory
     });
 
@@ -130,6 +131,7 @@ function _splitVideoIntoFrames(video, options) {
   var fps = options.fps || 30.0;
   var startFrame = options.startFrame || 0;
   var numberOfFrames = options.numberOfFrames || fps * 60;
+  var scaleImages = options.scaleImages !== undefined ? options.scaleImages : true;
   var outDirectory = options.outDirectory || path.join(process.cwd(), 'frampton-temp-' + Math.floor(Math.random() * 1000000));
   var outFileFormat = path.join(outDirectory, 'frame%d.png');
 
@@ -139,7 +141,11 @@ function _splitVideoIntoFrames(video, options) {
 
   var start = startFrame / fps;
   var duration = numberOfFrames / fps;
-  var command = 'ffmpeg -ss ' + start + ' -t ' + duration + ' -i ' + video + ' -vf scale=480:-2 ' + outFileFormat;
+
+  var command = 'ffmpeg -ss ' + start + ' -t ' + duration + ' -i ' + video + ' ';
+  if (scaleImages) command += '-vf scale=480:-2 ';
+  command += '' + outFileFormat;
+
   _executeFFMPEGCommand(command);
 
   var files = filesInPath(outDirectory, true);
