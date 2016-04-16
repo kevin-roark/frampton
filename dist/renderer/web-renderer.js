@@ -270,10 +270,56 @@ module.exports = function (_Renderer) {
       }
     }
   }, {
-    key: 'renderColorSegment',
-    value: function renderColorSegment(segment, _ref2) {
+    key: 'renderTextSegment',
+    value: function renderTextSegment(segment, _ref2) {
       var _ref2$offset = _ref2.offset;
       var offset = _ref2$offset === undefined ? 0 : _ref2$offset;
+
+      var self = this;
+
+      var div = document.createElement('div');
+      div.className = 'frampton-text';
+
+      div.style.fontFamily = segment.font;
+      div.style.fontSize = segment.fontSize;
+      div.style.zIndex = segment.z;
+      div.style.textAlign = segment.textAlignment;
+      div.style.color = segment.color;
+
+      if (segment.maxWidth) {
+        div.style.maxWidth = segment.maxWidth;
+      }
+      if (segment.top) {
+        div.style.top = segment.top;
+      }
+      if (segment.left) {
+        div.style.left = segment.left;
+      }
+
+      div.textContent = segment.text;
+
+      div.style.display = 'none';
+      this.domContainer.appendChild(div);
+
+      setTimeout(start, offset);
+      setTimeout(end, offset + segment.msDuration());
+
+      function start() {
+        div.style.display = 'block';
+        self.setVisualSegmentOpacity(segment, div);
+        segment.didStart();
+      }
+
+      function end() {
+        div.parentNode.removeChild(div);
+        segment.cleanup();
+      }
+    }
+  }, {
+    key: 'renderColorSegment',
+    value: function renderColorSegment(segment, _ref3) {
+      var _ref3$offset = _ref3.offset;
+      var offset = _ref3$offset === undefined ? 0 : _ref3$offset;
 
       var self = this;
 
@@ -406,9 +452,9 @@ module.exports = function (_Renderer) {
 
   }, {
     key: 'renderAudioSegmentWithWebAudio',
-    value: function renderAudioSegmentWithWebAudio(segment, _ref3) {
-      var _ref3$offset = _ref3.offset;
-      var offset = _ref3$offset === undefined ? 0 : _ref3$offset;
+    value: function renderAudioSegmentWithWebAudio(segment, _ref4) {
+      var _ref4$offset = _ref4.offset;
+      var offset = _ref4$offset === undefined ? 0 : _ref4$offset;
 
       var self = this;
 
@@ -469,9 +515,9 @@ module.exports = function (_Renderer) {
     }
   }, {
     key: 'renderAudioSegmentWithHTMLAudio',
-    value: function renderAudioSegmentWithHTMLAudio(segment, _ref4) {
-      var _ref4$offset = _ref4.offset;
-      var offset = _ref4$offset === undefined ? 0 : _ref4$offset;
+    value: function renderAudioSegmentWithHTMLAudio(segment, _ref5) {
+      var _ref5$offset = _ref5.offset;
+      var offset = _ref5$offset === undefined ? 0 : _ref5$offset;
 
       var self = this;
 

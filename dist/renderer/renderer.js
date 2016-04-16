@@ -57,6 +57,9 @@ module.exports = function () {
     key: 'renderAudioSegment',
     value: function renderAudioSegment() {}
   }, {
+    key: 'renderTextSegment',
+    value: function renderTextSegment() {}
+  }, {
     key: 'renderSegment',
     value: function renderSegment(segment) {
       var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
@@ -76,6 +79,10 @@ module.exports = function () {
 
         case 'audio':
           this.renderAudioSegment(segment, options);
+          break;
+
+        case 'text':
+          this.renderTextSegment(segment, options);
           break;
 
         case 'sequence':

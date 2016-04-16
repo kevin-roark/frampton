@@ -247,6 +247,42 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
+  renderTextSegment(segment, {offset=0}) {
+    var self = this;
+
+    var div = document.createElement('div');
+    div.className = 'frampton-text';
+
+    div.style.fontFamily = segment.font;
+    div.style.fontSize = segment.fontSize;
+    div.style.zIndex = segment.z;
+    div.style.textAlign = segment.textAlignment;
+    div.style.color = segment.color;
+
+    if (segment.maxWidth) { div.style.maxWidth = segment.maxWidth; }
+    if (segment.top) { div.style.top = segment.top; }
+    if (segment.left) { div.style.left = segment.left; }
+
+    div.textContent = segment.text;
+
+    div.style.display = 'none';
+    this.domContainer.appendChild(div);
+
+    setTimeout(start, offset);
+    setTimeout(end, offset + segment.msDuration());
+
+    function start() {
+      div.style.display = 'block';
+      self.setVisualSegmentOpacity(segment, div);
+      segment.didStart();
+    }
+
+    function end() {
+      div.parentNode.removeChild(div);
+      segment.cleanup();
+    }
+  }
+
   renderColorSegment(segment, {offset=0}) {
     var self = this;
 
