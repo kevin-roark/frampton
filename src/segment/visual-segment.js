@@ -42,4 +42,28 @@ module.exports = class VisualSegment extends MediaSegment {
     return this;
   }
 
+  setLeft(left) {
+    this.left = left;
+
+    this.notifyChangeHandlers('left', left);
+
+    return this;
+  }
+
+  setTop(top) {
+    this.top = top;
+
+    this.notifyChangeHandlers('top', top);
+
+    return this;
+  }
+
+  setWidth(width) {
+    this.width = width;
+
+    this.notifyChangeHandlers('width', width);
+
+    return this;
+  }
+
 };

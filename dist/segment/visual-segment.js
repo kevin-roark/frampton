@@ -62,6 +62,33 @@ module.exports = function (_MediaSegment) {
 
       return this;
     }
+  }, {
+    key: 'setLeft',
+    value: function setLeft(left) {
+      this.left = left;
+
+      this.notifyChangeHandlers('left', left);
+
+      return this;
+    }
+  }, {
+    key: 'setTop',
+    value: function setTop(top) {
+      this.top = top;
+
+      this.notifyChangeHandlers('top', top);
+
+      return this;
+    }
+  }, {
+    key: 'setWidth',
+    value: function setWidth(width) {
+      this.width = width;
+
+      this.notifyChangeHandlers('width', width);
+
+      return this;
+    }
   }]);
 
   return VisualSegment;
