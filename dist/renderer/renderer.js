@@ -9,7 +9,7 @@ module.exports = function () {
     _classCallCheck(this, Renderer);
 
     this.mediaConfig = options.mediaConfig;
-    this.outputFilepath = options.outputFilepath !== undefined ? options.outputFilepath : './out/';
+    this.outputFilepath = options.outputFilepath !== undefined ? options.outputFilepath : 'out/';
     this.log = options.log || false;
     this.audioFadeDuration = options.audioFadeDuration;
     this.videoFadeDuration = options.videoFadeDuration;

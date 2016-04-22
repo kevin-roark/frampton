@@ -8,7 +8,7 @@ var filesInPath = require('./files-in-path');
 
 var args = process.argv.slice(2);
 
-var mediaPath = args.length > 0 ? args[0] : './media';
+var mediaPath = args.length > 0 ? args[0] : 'media';
 var splitShots = args.indexOf('--split') > 0;
 var splitOnly = args.indexOf('--splitonly') > 0;
 var startFlag = args.indexOf('--start') > 0 ? parseFloat(args[args.indexOf('--start') + 1]) : 2; // values less than 2 trim the begining

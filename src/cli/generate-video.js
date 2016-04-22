@@ -16,7 +16,7 @@ var spawn = require('child_process').spawn;
 
   var scoreFilePath = args[0];
   var mediaConfigFilepath = args[1];
-  var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : './out';
+  var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : 'out';
   var renderedVideoName = args.indexOf('--outName') > 0 ? args[args.indexOf('--outName') + 1] : 'frampton-final.mp4';
 
   var score = fs.readFileSync(scoreFilePath).toString()

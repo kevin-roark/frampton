@@ -9,8 +9,8 @@ require('string-natural-compare');
 
 var args = process.argv.slice(2);
 
-var mediaPath = args.length > 0 ? args[0] : './media';
-var outputFilepath = args.indexOf('--out') >= 0 ? args[args.indexOf('--out') + 1] : './media_config.json';
+var mediaPath = args.length > 0 ? args[0] : 'media';
+var outputFilepath = args.indexOf('--out') >= 0 ? args[args.indexOf('--out') + 1] : 'media_config.json';
 var durationErrorConstant = args.indexOf('--durationConstant') >= 0 ? Number(args[args.indexOf('--durationConstant') + 1]) : 0;
 var silent = args.indexOf('--silent') > 0;
 

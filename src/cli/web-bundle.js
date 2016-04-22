@@ -20,7 +20,7 @@ var uglifyify = require('uglifyify');
 
   var scoreFilePath = args[0];
   var mediaConfigFilepath = args[1];
-  var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : './out';
+  var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : 'out';
   var shouldUglify = args.indexOf('--nougly') === -1;
   var onlyCopyScore = args.indexOf('--onlyscore') >= 0;
   var allowAllBrowsers = args.indexOf('--allbrowsers') >= 0;

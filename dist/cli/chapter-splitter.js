@@ -12,7 +12,7 @@ var exec = require('child_process').exec;
   }
 
   var videoFilepath = args[0];
-  var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : './out';
+  var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : 'out';
   var chapterVolume = args.indexOf('--c') > 0 ? parseFloat(args[args.indexOf('--c') + 1]) : 1;
   var startChapter = args.indexOf('--s') > 0 ? parseFloat(args[args.indexOf('--s') + 1]) : 1;
 

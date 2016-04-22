@@ -19,7 +19,7 @@ var exec = require('child_process').exec;
 
   var srtFilepath = args[0];
   var videoFilepath = args[1];
-  var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : './out';
+  var outputFilepath = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : 'out';
   var outputPrefix = args.indexOf('--pre') > 0 ? args[args.indexOf('--pre') + 1] : '';
   var fps = args.indexOf('--fps') > 0 ? parseFloat(args[args.indexOf('--fps') + 1]) : 24;
   var cutForPremiere = args.indexOf('--premiere') > 0;
