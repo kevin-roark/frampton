@@ -70,12 +70,22 @@ var exec = require('child_process').exec;
       var start, videoStart, audioStart, duration, videoDuration, audioDuration;
       if (idx === 0) {
         start = (shot.start - (firstIdxMultiplier * msPerFrame))  / 1000;
-        videoStart = start;
-        audioStart = start;
 
         duration = shot.duration / 1000;
-        videoDuration = duration + videoHandleLength - offset;
-        audioDuration = duration + audioHandleLength - offset;
+        
+        if (shot.start < audioHandleLength){
+          videoStart = start;
+          audioStart = start;
+          videoDuration = duration + videoHandleLength - offset;
+          audioDuration = duration + audioHandleLength - offset;
+        }
+        else{
+          videoStart = start - videoHandleLength;
+          audioStart = start - audioHandleLength;
+          videoDuration = duration + videoHandleLength * 2 - offset;
+          audioDuration = duration + audioHandleLength * 2 - offset;
+        }
+
       }
       else if (idx === 1) {
         start = (shot.start - (startMultiplier  * msPerFrame))  / 1000;
