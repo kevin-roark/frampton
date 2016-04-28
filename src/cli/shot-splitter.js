@@ -72,7 +72,7 @@ var exec = require('child_process').exec;
         start = (shot.start - (firstIdxMultiplier * msPerFrame))  / 1000;
 
         duration = shot.duration / 1000;
-        
+
         if (shot.start < audioHandleLength){
           videoStart = start;
           audioStart = start;
@@ -191,7 +191,7 @@ var exec = require('child_process').exec;
     }
 
     function toMS(frameSecondsString) {
-      var split = frameSecondsString.split(';');
+      var split = frameSecondsString.split(':');
       var seconds =
         parseFloat(split[0]) * 3600 +
         parseFloat(split[1]) * 60 +
