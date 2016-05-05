@@ -219,9 +219,24 @@ module.exports = function (_Renderer) {
 
           case 'video':
             // only perform the trim if *strictly* necessary
-            if (start > 0 || duration < unit.segment.mediaDuration || unit.segment.volume < 1) {
+            var isStartModified = start > 0,
+                isDurationModified = duration < unit.segment.mediaDuration,
+                isVolumeModified = unit.segment.volume < 1,
+                isPlaybackRateModified = unit.segment.playbackRate !== 1.0;
+            if (isStartModified || isDurationModified || isVolumeModified || isPlaybackRateModified) {
               filename = this.generateVideoFilename();
-              command = 'ffmpeg -ss ' + start + ' -t ' + duration + ' -i ' + unit.currentFile + ' -af "volume=' + unit.segment.volume + '" -t ' + duration + ' -c:v h264 -c:a aac -threads 0 ' + filename;
+              command = 'ffmpeg';
+              if (isStartModified) command += ' -ss ' + start;
+              if (isDurationModified) command += ' -t ' + duration;
+              command += ' -i ' + unit.currentFile;
+
+              if (isVolumeModified || isPlaybackRateModified) {
+                var rate = unit.segment.playbackRate;var inverseRate = 1 / rate;
+                command += ' -filter_complex "[0:v]setpts=' + inverseRate + '*PTS[v];[0:a]atempo=' + rate + ',volume=' + unit.segment.volume + '[a]" -map "[v]" -map "[a]"';
+              }
+
+              if (isDurationModified) command += ' -t ' + duration;
+              command += ' -c:v h264 -c:a aac -threads 0 ' + filename;
             }
             break;
 
@@ -364,7 +379,10 @@ module.exports = function (_Renderer) {
         command += ' -filter_complex "';
         units.forEach(function (unit, idx) {
           var segment = unit.segment;
-          command += '[' + (idx + 1) + ':a]asetpts=PTS-STARTPTS';
+          command += '[' + (idx + 1) + ':a]asetpts=PTS-STARTPTS,volume=' + segment.volume;
+          if (segment.playbackRate !== 1.0) {
+            command += ',atempo=' + segment.playbackRate;
+          }
           if (segment.fadeInDuration) {
             command += ',afade=t=in:st=0:d=' + segment.fadeInDuration;
           }
