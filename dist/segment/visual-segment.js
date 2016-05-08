@@ -57,36 +57,35 @@ module.exports = function (_MediaSegment) {
     key: 'setOpacity',
     value: function setOpacity(opacity) {
       this.opacity = opacity;
-
       this.notifyChangeHandlers('opacity', opacity);
-
       return this;
     }
   }, {
     key: 'setLeft',
     value: function setLeft(left) {
       this.left = left;
-
       this.notifyChangeHandlers('left', left);
-
       return this;
     }
   }, {
     key: 'setTop',
     value: function setTop(top) {
       this.top = top;
-
       this.notifyChangeHandlers('top', top);
-
       return this;
     }
   }, {
     key: 'setWidth',
     value: function setWidth(width) {
       this.width = width;
-
       this.notifyChangeHandlers('width', width);
-
+      return this;
+    }
+  }, {
+    key: 'setZ',
+    value: function setZ(z) {
+      this.z = z;
+      this.notifyChangeHandlers('z', z);
       return this;
     }
   }]);

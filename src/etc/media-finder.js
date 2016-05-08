@@ -4,6 +4,18 @@ module.exports = class MediaFinder {
     this.mediaConfig = mediaConfig;
   }
 
+  findVideoWithPatern(pattern) {
+    let videos = this.mediaConfig.videos;
+    for (let i = 0; i < videos.length; i++) {
+      let video = videos[i];
+      if (video.filename.indexOf(pattern) >= 0) {
+        return video;
+      }
+    }
+
+    return null;
+  }
+
   findAudioHandleForVideo(video) {
     var strippedFilename = stripExtension(video.filename || video);
 

@@ -36,33 +36,31 @@ module.exports = class VisualSegment extends MediaSegment {
 
   setOpacity(opacity) {
     this.opacity = opacity;
-
     this.notifyChangeHandlers('opacity', opacity);
-
     return this;
   }
 
   setLeft(left) {
     this.left = left;
-
     this.notifyChangeHandlers('left', left);
-
     return this;
   }
 
   setTop(top) {
     this.top = top;
-
     this.notifyChangeHandlers('top', top);
-
     return this;
   }
 
   setWidth(width) {
     this.width = width;
-
     this.notifyChangeHandlers('width', width);
+    return this;
+  }
 
+  setZ(z) {
+    this.z = z;
+    this.notifyChangeHandlers('z', z);
     return this;
   }
 

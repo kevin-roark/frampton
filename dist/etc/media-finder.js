@@ -12,6 +12,19 @@ module.exports = function () {
   }
 
   _createClass(MediaFinder, [{
+    key: 'findVideoWithPatern',
+    value: function findVideoWithPatern(pattern) {
+      var videos = this.mediaConfig.videos;
+      for (var i = 0; i < videos.length; i++) {
+        var video = videos[i];
+        if (video.filename.indexOf(pattern) >= 0) {
+          return video;
+        }
+      }
+
+      return null;
+    }
+  }, {
     key: 'findAudioHandleForVideo',
     value: function findAudioHandleForVideo(video) {
       var strippedFilename = stripExtension(video.filename || video);
