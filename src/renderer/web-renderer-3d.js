@@ -1,6 +1,7 @@
 
 var WebRenderer = require('./web-renderer');
 var THREE = require('three');
+var TWEEN = require('tween.js');
 
 module.exports = class WebRenderer3D extends WebRenderer {
   constructor(options) {
@@ -49,7 +50,134 @@ module.exports = class WebRenderer3D extends WebRenderer {
   }
 
   renderVideoSegment(segment, { offset = 0 }) {
-    // gonna wanna override this sucker to put the video in a 3d world
+    var self = this;
+
+    let { videoMeshWidth = 150, videoSourceWidth = 853, videoMeshHeight = 75, videoSourceHeight = 480, meshConfigurer, geometryProvider } = segment.threeOptions;
+    if (!geometryProvider) geometryProvider = () => {
+      return new THREE.PlaneGeometry(videoMeshWidth, videoMeshHeight);
+    };
+
+    var video = document.createElement('video');
+    video.preload = true;
+
+    var filename = video.canPlayType('video/mp4').length > 0 ? segment.filename : segment.extensionlessName() + '.webm';
+    video.src = this.videoSourceMaker(filename);
+
+    video.volume = segment.volume;
+    segment.addChangeHandler('volume', function(volume) {
+      video.volume = volume;
+    });
+
+    video.currentTime = segment.startTime;
+
+    video.playbackRate = segment.playbackRate;
+    segment.addChangeHandler('playbackRate', function(playbackRate) {
+      video.playbackRate = playbackRate;
+    });
+
+    var videoCanvas = document.createElement('canvas');
+    videoCanvas.width = videoSourceWidth; videoCanvas.height = videoSourceHeight;
+
+    var videoContext = videoCanvas.getContext('2d');
+    videoContext.fillStyle = '#000000'; // background color if no video present
+    videoContext.fillRect( 0, 0, videoMeshWidth, videoMeshHeight);
+
+    var videoTexture = new THREE.Texture(videoCanvas);
+    videoTexture.minFilter = videoTexture.magFilter = THREE.LinearFilter;
+    videoTexture.format = THREE.RGBFormat;
+    videoTexture.generateMipmaps = false;
+
+    var videoMaterial = new THREE.MeshBasicMaterial({
+      map: videoTexture,
+      overdraw: true,
+      side: THREE.DoubleSide
+    });
+
+    var videoGeometry = geometryProvider(videoMeshWidth, videoMeshHeight);
+
+    var videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+    if (meshConfigurer) meshConfigurer(videoMesh);
+
+    video.style.display = 'none';
+    this.domContainer.appendChild(video);
+
+    var segmentDuration = segment.msDuration();
+    var expectedStart = window.performance.now() + offset;
+    var renderFunctionID;
+
+    video.addEventListener('playing', function() {
+      var now = window.performance.now();
+      var startDelay = now + self.startPerceptionCorrection - expectedStart;
+
+      var endTimeout = segmentDuration;
+      if (startDelay > self.startPerceptionCorrection) {
+        endTimeout -= startDelay;
+      }
+
+      setTimeout(end, endTimeout);
+    }, false);
+
+    setTimeout(start, offset - this.startDelayCorrection - this.startPerceptionCorrection);
+
+    function start() {
+      self.scene.add(videoMesh);
+      video.play();
+
+      renderFunctionID = self.addUpdateFunction(updateVideo);
+
+      function updateVideo() {
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          videoContext.drawImage(video, 0, 0);
+          videoTexture.needsUpdate = true;
+        }
+      }
+
+      var videoFadeDuration = segment.videoFadeDuration || self.videoFadeDuration;
+      if (videoFadeDuration) {
+        videoFadeDuration = Math.min(videoFadeDuration, segmentDuration / 2);
+
+        // fade in
+        videoMaterial.transparent = true;
+        videoMaterial.opacity = 0;
+        new TWEEN.Tween(videoMaterial)
+          .to({opacity: segment.opacity}, videoFadeDuration)
+          .start();
+
+        // fade out
+        setTimeout(function() {
+          new TWEEN.Tween(videoMaterial)
+            .to({opacity: 0}, videoFadeDuration)
+            .start();
+        }, segmentDuration - videoFadeDuration);
+      }
+      else if (segment.opacity < 1) {
+        videoMaterial.transparent = true;
+        videoMaterial.opacity = segment.opacity;
+      }
+
+      self.fadeAudioForVideoSegment(segment, video);
+
+      segment.didStart();
+    }
+
+    function end() {
+      if (segment.loop) {
+        video.pause();
+        video.currentTime = segment.startTime;
+        video.play();
+        setTimeout(end, segmentDuration);
+      }
+      else {
+        video.parentNode.removeChild(video);
+        video.src = '';
+
+        self.removeUpdateFunctionWithIdentifier(renderFunctionID);
+
+        self.scene.remove(videoMesh);
+
+        segment.cleanup();
+      }
+    }
   }
 
 };

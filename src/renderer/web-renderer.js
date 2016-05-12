@@ -205,23 +205,7 @@ module.exports = class WebRenderer extends Renderer {
         self.setVisualSegmentOpacity(segment, video);
       }
 
-      var audioFadeDuration = segment.audioFadeDuration || self.audioFadeDuration;
-      if (audioFadeDuration) {
-        audioFadeDuration = Math.min(audioFadeDuration, segmentDuration / 2);
-
-        // fade in
-        video.volume = 0;
-        new TWEEN.Tween(video)
-          .to({volume: segment.volume}, audioFadeDuration)
-          .start();
-
-        setTimeout(function() {
-          // fade out
-          new TWEEN.Tween(video)
-            .to({volume: 0}, audioFadeDuration)
-            .start();
-        }, segmentDuration - audioFadeDuration);
-      }
+      self.fadeAudioForVideoSegment(segment, video);
 
       segment.didStart();
     }
@@ -244,6 +228,27 @@ module.exports = class WebRenderer extends Renderer {
         video.src = '';
         segment.cleanup();
       }
+    }
+  }
+
+  fadeAudioForVideoSegment(segment, video) {
+    var audioFadeDuration = segment.audioFadeDuration || this.audioFadeDuration;
+    if (audioFadeDuration) {
+      var segmentDuration = segment.msDuration();
+      audioFadeDuration = Math.min(audioFadeDuration, segmentDuration / 2);
+
+      // fade in
+      video.volume = 0;
+      new TWEEN.Tween(video)
+        .to({volume: segment.volume}, audioFadeDuration)
+        .start();
+
+      setTimeout(function() {
+        // fade out
+        new TWEEN.Tween(video)
+          .to({volume: 0}, audioFadeDuration)
+          .start();
+      }, segmentDuration - audioFadeDuration);
     }
   }
 
