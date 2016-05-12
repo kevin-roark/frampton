@@ -54,7 +54,7 @@ module.exports = class WebRenderer3D extends WebRenderer {
   renderVideoSegment(segment, { offset = 0 }) {
     var self = this;
 
-    let { videoMeshWidth = 150, videoSourceWidth = 853, videoMeshHeight = 75, videoSourceHeight = 480, meshConfigurer, geometryProvider } = segment.threeOptions;
+    let { videoMeshWidth = 150, videoSourceWidth = 854, videoMeshHeight = 75, videoSourceHeight = 480, meshConfigurer, geometryProvider } = segment.threeOptions;
     if (!geometryProvider) geometryProvider = () => {
       return new THREE.PlaneGeometry(videoMeshWidth, videoMeshHeight);
     };

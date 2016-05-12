@@ -86,7 +86,7 @@ module.exports = function (_WebRenderer) {
       var _segment$threeOptions2 = _segment$threeOptions.videoMeshWidth;
       var videoMeshWidth = _segment$threeOptions2 === undefined ? 150 : _segment$threeOptions2;
       var _segment$threeOptions3 = _segment$threeOptions.videoSourceWidth;
-      var videoSourceWidth = _segment$threeOptions3 === undefined ? 853 : _segment$threeOptions3;
+      var videoSourceWidth = _segment$threeOptions3 === undefined ? 854 : _segment$threeOptions3;
       var _segment$threeOptions4 = _segment$threeOptions.videoMeshHeight;
       var videoMeshHeight = _segment$threeOptions4 === undefined ? 75 : _segment$threeOptions4;
       var _segment$threeOptions5 = _segment$threeOptions.videoSourceHeight;
