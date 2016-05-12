@@ -30,7 +30,9 @@ module.exports = function (_Renderer) {
     _this.startPerceptionCorrection = options.startPerceptionCorrection || 13; // this is constant
 
     _this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : function (filename) {
-      return _this.mediaConfig.path + filename;
+      var mediaPath = _this.mediaConfig.path;
+      if (mediaPath[mediaPath.length - 1] !== '/') mediaPath += '/';
+      return mediaPath + filename;
     };
 
     _this.domContainer = document.body;
@@ -173,7 +175,11 @@ module.exports = function (_Renderer) {
       var segmentDuration = segment.msDuration();
       var expectedStart = window.performance.now() + offset;
 
+      var hasPlayedFirstTime = false;
       video.addEventListener('playing', function () {
+        if (hasPlayedFirstTime) return;
+
+        hasPlayedFirstTime = true;
         var now = window.performance.now();
         var startDelay = now + self.startPerceptionCorrection - expectedStart;
 
@@ -233,19 +239,7 @@ module.exports = function (_Renderer) {
           self.setVisualSegmentOpacity(segment, video);
         }
 
-        var audioFadeDuration = segment.audioFadeDuration || self.audioFadeDuration;
-        if (audioFadeDuration) {
-          audioFadeDuration = Math.min(audioFadeDuration, segmentDuration / 2);
-
-          // fade in
-          video.volume = 0;
-          new TWEEN.Tween(video).to({ volume: segment.volume }, audioFadeDuration).start();
-
-          setTimeout(function () {
-            // fade out
-            new TWEEN.Tween(video).to({ volume: 0 }, audioFadeDuration).start();
-          }, segmentDuration - audioFadeDuration);
-        }
+        self.fadeAudioForVideoSegment(segment, video);
 
         segment.didStart();
       }
@@ -258,15 +252,31 @@ module.exports = function (_Renderer) {
         }
 
         if (segment.loop) {
-          video.pause();
           video.currentTime = segment.startTime;
-          video.play();
           setTimeout(end, segmentDuration);
         } else {
           video.parentNode.removeChild(video);
           video.src = '';
           segment.cleanup();
         }
+      }
+    }
+  }, {
+    key: 'fadeAudioForVideoSegment',
+    value: function fadeAudioForVideoSegment(segment, video) {
+      var audioFadeDuration = segment.audioFadeDuration || this.audioFadeDuration;
+      if (audioFadeDuration) {
+        var segmentDuration = segment.msDuration();
+        audioFadeDuration = Math.min(audioFadeDuration, segmentDuration / 2);
+
+        // fade in
+        video.volume = 0;
+        new TWEEN.Tween(video).to({ volume: segment.volume }, audioFadeDuration).start();
+
+        setTimeout(function () {
+          // fade out
+          new TWEEN.Tween(video).to({ volume: 0 }, audioFadeDuration).start();
+        }, segmentDuration - audioFadeDuration);
       }
     }
   }, {

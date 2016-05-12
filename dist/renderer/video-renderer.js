@@ -209,8 +209,8 @@ module.exports = function (_Renderer) {
 
         duration = duration / 1000;
 
-        var filename = undefined,
-            command = undefined;
+        var filename = void 0,
+            command = void 0;
         switch (unit.segment.segmentType) {
           case 'image':
             filename = this.generateVideoFilename();
