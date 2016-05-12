@@ -5,11 +5,13 @@ var TWEEN = require('tween.js');
 
 module.exports = class WebRenderer3D extends WebRenderer {
   constructor(options) {
+    super(options);
+
     let { rendererProvider, sceneProvider, cameraProvider } = options;
 
     if (!rendererProvider) rendererProvider = () => {
       let renderer = new THREE.WebGLRenderer();
-      renderer.setClearColor(0xfffff, 1);
+      renderer.setClearColor(0xffffff, 1);
       return renderer;
     };
     this.renderer = rendererProvider();
@@ -17,14 +19,14 @@ module.exports = class WebRenderer3D extends WebRenderer {
     if (!sceneProvider) sceneProvider = () => { return new THREE.Scene(); };
     this.scene = sceneProvider();
 
-    if (!cameraProvider) cameraProvider = () => { return new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 5000); };
+    if (!cameraProvider) cameraProvider = () => {
+      return new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+    };
     this.camera = cameraProvider();
     this.scene.add(this.camera);
 
     this.ambientLight = new THREE.AmbientLight(0x404040);
     this.scene.add(this.ambientLight);
-
-    super(options);
 
     this.domContainer.appendChild(this.renderer.domElement);
 
@@ -105,7 +107,11 @@ module.exports = class WebRenderer3D extends WebRenderer {
     var expectedStart = window.performance.now() + offset;
     var renderFunctionID;
 
+    var hasPlayedFirstTime = false;
     video.addEventListener('playing', function() {
+      if (hasPlayedFirstTime) return;
+
+      hasPlayedFirstTime = true;
       var now = window.performance.now();
       var startDelay = now + self.startPerceptionCorrection - expectedStart;
 
@@ -162,9 +168,7 @@ module.exports = class WebRenderer3D extends WebRenderer {
 
     function end() {
       if (segment.loop) {
-        video.pause();
         video.currentTime = segment.startTime;
-        video.play();
         setTimeout(end, segmentDuration);
       }
       else {

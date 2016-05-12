@@ -15,7 +15,9 @@ module.exports = class WebRenderer extends Renderer {
     this.startPerceptionCorrection = options.startPerceptionCorrection || 13; // this is constant
 
     this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : (filename) =>  {
-      return this.mediaConfig.path + filename;
+      var mediaPath = this.mediaConfig.path;
+      if (mediaPath[mediaPath.length -1] !== '/') mediaPath += '/';
+      return mediaPath + filename;
     };
 
     this.domContainer = document.body;
@@ -142,7 +144,11 @@ module.exports = class WebRenderer extends Renderer {
     var segmentDuration = segment.msDuration();
     var expectedStart = window.performance.now() + offset;
 
+    var hasPlayedFirstTime = false;
     video.addEventListener('playing', function() {
+      if (hasPlayedFirstTime) return;
+
+      hasPlayedFirstTime = true;
       var now = window.performance.now();
       var startDelay = now + self.startPerceptionCorrection - expectedStart;
 
@@ -218,9 +224,7 @@ module.exports = class WebRenderer extends Renderer {
       }
 
       if (segment.loop) {
-        video.pause();
         video.currentTime = segment.startTime;
-        video.play();
         setTimeout(end, segmentDuration);
       }
       else {
