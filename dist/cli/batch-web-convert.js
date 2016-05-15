@@ -17,6 +17,9 @@ var ncp = require('ncp');
   var videoDirectory = args[0];
   var outputDirectory = args.indexOf('--out') > 0 ? args[args.indexOf('--out') + 1] : videoDirectory + '-converted';
   var makeWebm = args.indexOf('--webm') > 0;
+  var bitrate = args.indexOf('--bitrate') > 0 ? parseFloat(args[args.indexOf('--bitrate') + 1]) : 2000;
+  var resolution = args.indexOf('--resolution') > 0 ? parseFloat(args[args.indexOf('--resolution') + 1]) : 480;
+  var abitrate = args.indexOf('--abitrate') > 0 ? parseFloat(args[args.indexOf('--abitrate') + 1]) : 160;
 
   var files = filesInPath(videoDirectory, true);
   var itemsBeingProcessed = 0;
@@ -63,7 +66,7 @@ var ncp = require('ncp');
         if (makeWebm) {
           var extensionFreeOutputPath = path.join(outputDirectory, extensionFreeFilename);
           console.log('converting ' + filepath + ' to webm...');
-          exec(__dirname + '/webm-convert.sh ' + extensionFreeOutputPath, function (err) {
+          exec(__dirname + '/webm-convert.sh ' + extensionFreeOutputPath + ' ' + bitrate + ' ' + resolution + ' ' + abitrate, function (err) {
             if (err) {
               console.log('error converting video to webm: ');
               console.error(err);

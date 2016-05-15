@@ -44,7 +44,7 @@ var filesInPath = require('./files-in-path');
     var outputMP3Filepath = path.join(outputDirectory, extensionFreeFilename + '.mp3');
 
     console.log('converting ' + filepath + ' to mp3...');
-    exec(__dirname + '/mp3-convert.sh ' + filepath + ' ' + outputMP3Filepath, function (err) {
+    exec(__dirname + '/mp3-convert.sh ' + filepath + ' ' + outputMP3Filepath, function (err, o) {
       if (err) {
         console.log('error converting to mp3: ');
         console.error(err);
