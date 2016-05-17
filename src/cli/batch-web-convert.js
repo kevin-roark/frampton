@@ -56,7 +56,7 @@ var ncp = require('ncp');
     var outputMP4Filepath = path.join(outputDirectory, `${extensionFreeFilename}.mp4`);
 
     console.log(`converting ${filepath} to web mp4...`);
-    exec(`${__dirname}/web-mp4-convert.sh ${filepath} ${outputMP4Filepath}`, function(err) {
+    exec(`${__dirname}/web-mp4-convert.sh ${filepath} ${outputMP4Filepath} ${bitrate} ${resolution} ${abitrate}`, function(err) {
       if (err) {
         console.log('error converting video to mp4: ');
         console.error(err);
