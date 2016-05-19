@@ -1,10 +1,11 @@
 
 var fs = require('fs');
 var path = require('path');
+var execSync = require('child_process').execSync;
 var Renderer = require('./renderer');
 var ScheduledUnit = require('./scheduled-unit');
 var util = require('../etc/util');
-var execSync = require('child_process').execSync;
+var AudioSegment = require('../segment/audio-segment');
 
 module.exports = class VideoRenderer extends Renderer {
   constructor(options) {
@@ -17,6 +18,7 @@ module.exports = class VideoRenderer extends Renderer {
     this.inputVideosHaveDifferentCodecs = options.inputVideosHaveDifferentCodecs !== undefined ? options.inputVideosHaveDifferentCodecs : false;
     this.stripAudioFromAllVideos = options.stripAudioFromAllVideos !== undefined ? options.stripAudioFromAllVideos : false;
     this.preferredVideoScale = options.preferredVideoScale;
+    this.maintainAudioWhenVideoCuts = options.maintainAudioWhenVideoCuts || false;
 
     this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : (filename) => {
       return path.join(this.mediaConfig.path, filename);
@@ -115,7 +117,7 @@ module.exports = class VideoRenderer extends Renderer {
     });
 
     // cut units into smaller units of continuous files
-    this.cutUnitsIntoChunks(visualUnits);
+    this.cutUnitsIntoChunks(visualUnits, audioUnits);
 
     // concatenate trimmed files into gapless video
     var concatFile = this.concatenateUnits(visualUnits);
@@ -141,7 +143,7 @@ module.exports = class VideoRenderer extends Renderer {
     return execSync(command, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
   }
 
-  cutUnitsIntoChunks(units) {
+  cutUnitsIntoChunks(units, audioUnits) {
     // trim the video file of each unit to the actual portion renderered
     for (var idx = 0; idx < units.length; idx++) {
       var unit = units[idx];
@@ -156,7 +158,7 @@ module.exports = class VideoRenderer extends Renderer {
         var offset = unit.offset + segmentDuration;
 
         if (offset > nextUnit.offset) {
-          // the next segment starts before this ends, need to trim brother
+          // the next segment starts before this segment ends, need to trim brother
           duration = nextUnit.offset - unit.offset;
 
           // if there is additional duration in this clip after the next unit ends, we should add a new unit in between
@@ -172,6 +174,28 @@ module.exports = class VideoRenderer extends Renderer {
               newUnit.currentFile = unit.currentFile;
 
               units.splice(idx + 2, 0, newUnit); // insert new unit after next unit
+            }
+          }
+
+          // add an audio segment with just the audio from the part of this segment that the next segment overlaps
+          if (this.maintainAudioWhenVideoCuts) {
+            let audioStartTime = unit.segment.startTime + duration / 1000;
+            let audioDuration = segmentDuration - duration;
+            if (afterNextUnitDuration > 0) audioDuration -= afterNextUnitDuration;
+
+            if (audioDuration > 10) {
+              let audioSegment = new AudioSegment({
+                filename: unit.segment.filename,
+                duration: unit.segment.mediaDuration,
+                startTime: audioStartTime
+              });
+              audioSegment.setDuration(audioDuration / 1000);
+
+              let audioOffset = unit.offset + duration;
+              let audioUnit = new ScheduledUnit(audioSegment, audioOffset);
+              audioUnit.currentFile = this.videoSourceMaker(audioSegment.filename);
+
+              this.insertScheduledUnit(audioUnit, audioUnits);
             }
           }
         }
@@ -194,7 +218,8 @@ module.exports = class VideoRenderer extends Renderer {
           let isStartModified = start > 0,
               isDurationModified = duration < unit.segment.mediaDuration,
               isVolumeModified = unit.segment.volume < 1,
-              isPlaybackRateModified = unit.segment.playbackRate !== 1.0;
+              isPlaybackRateModified = unit.segment.playbackRate !== 1.0,
+              hasAudioFade = unit.segment.audioFadeDuration > 0;
           if (isStartModified || isDurationModified || isVolumeModified || isPlaybackRateModified) {
             filename = this.generateVideoFilename();
             command = 'ffmpeg';
@@ -202,9 +227,14 @@ module.exports = class VideoRenderer extends Renderer {
             if (isDurationModified) command += ` -t ${duration}`;
             command += ` -i ${unit.currentFile}`;
 
-            if (isVolumeModified || isPlaybackRateModified) {
-              let rate = unit.segment.playbackRate; let inverseRate = 1 / rate;
-              command += ` -filter_complex "[0:v]setpts=${inverseRate}*PTS[v];[0:a]atempo=${rate},volume=${unit.segment.volume}[a]" -map "[v]" -map "[a]"`;
+            if (isVolumeModified || isPlaybackRateModified || hasAudioFade) {
+              let rate = unit.segment.playbackRate;
+              command += ` -filter_complex "[0:v]setpts=${1 / rate}*PTS[v];[0:a]atempo=${rate},volume=${unit.segment.volume}`;
+              if (hasAudioFade) {
+                let audioFadeDuration = unit.segment.audioFadeDuration;
+                command += `,afade=t=in:st=0:d=${audioFadeDuration},afade=t=out:st=${duration - audioFadeDuration}:d=${audioFadeDuration}`;
+              }
+              command += `[a]" -map "[v]" -map "[a]"`;
             }
 
             if (isDurationModified) command += ` -t ${duration}`;
@@ -215,7 +245,7 @@ module.exports = class VideoRenderer extends Renderer {
         default: break;
       }
 
-      if (filename && command) {
+      if (filename && command && duration > 0.001) {
         this.executeFFMPEGCommand(command);
         unit.currentFile = filename;
       }

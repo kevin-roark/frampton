@@ -12,10 +12,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var fs = require('fs');
 var path = require('path');
+var execSync = require('child_process').execSync;
 var Renderer = require('./renderer');
 var ScheduledUnit = require('./scheduled-unit');
 var util = require('../etc/util');
-var execSync = require('child_process').execSync;
+var AudioSegment = require('../segment/audio-segment');
 
 module.exports = function (_Renderer) {
   _inherits(VideoRenderer, _Renderer);
@@ -32,6 +33,7 @@ module.exports = function (_Renderer) {
     _this.inputVideosHaveDifferentCodecs = options.inputVideosHaveDifferentCodecs !== undefined ? options.inputVideosHaveDifferentCodecs : false;
     _this.stripAudioFromAllVideos = options.stripAudioFromAllVideos !== undefined ? options.stripAudioFromAllVideos : false;
     _this.preferredVideoScale = options.preferredVideoScale;
+    _this.maintainAudioWhenVideoCuts = options.maintainAudioWhenVideoCuts || false;
 
     _this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : function (filename) {
       return path.join(_this.mediaConfig.path, filename);
@@ -141,7 +143,7 @@ module.exports = function (_Renderer) {
       });
 
       // cut units into smaller units of continuous files
-      this.cutUnitsIntoChunks(visualUnits);
+      this.cutUnitsIntoChunks(visualUnits, audioUnits);
 
       // concatenate trimmed files into gapless video
       var concatFile = this.concatenateUnits(visualUnits);
@@ -169,7 +171,7 @@ module.exports = function (_Renderer) {
     }
   }, {
     key: 'cutUnitsIntoChunks',
-    value: function cutUnitsIntoChunks(units) {
+    value: function cutUnitsIntoChunks(units, audioUnits) {
       // trim the video file of each unit to the actual portion renderered
       for (var idx = 0; idx < units.length; idx++) {
         var unit = units[idx];
@@ -184,7 +186,7 @@ module.exports = function (_Renderer) {
           var offset = unit.offset + segmentDuration;
 
           if (offset > nextUnit.offset) {
-            // the next segment starts before this ends, need to trim brother
+            // the next segment starts before this segment ends, need to trim brother
             duration = nextUnit.offset - unit.offset;
 
             // if there is additional duration in this clip after the next unit ends, we should add a new unit in between
@@ -202,9 +204,31 @@ module.exports = function (_Renderer) {
                 units.splice(idx + 2, 0, newUnit); // insert new unit after next unit
               }
             }
-          } else {
-              duration = segmentDuration;
+
+            // add an audio segment with just the audio from the part of this segment that the next segment overlaps
+            if (this.maintainAudioWhenVideoCuts) {
+              var audioStartTime = unit.segment.startTime + duration / 1000;
+              var audioDuration = segmentDuration - duration;
+              if (afterNextUnitDuration > 0) audioDuration -= afterNextUnitDuration;
+
+              if (audioDuration > 10) {
+                var audioSegment = new AudioSegment({
+                  filename: unit.segment.filename,
+                  duration: unit.segment.mediaDuration,
+                  startTime: audioStartTime
+                });
+                audioSegment.setDuration(audioDuration / 1000);
+
+                var audioOffset = unit.offset + duration;
+                var audioUnit = new ScheduledUnit(audioSegment, audioOffset);
+                audioUnit.currentFile = this.videoSourceMaker(audioSegment.filename);
+
+                this.insertScheduledUnit(audioUnit, audioUnits);
+              }
             }
+          } else {
+            duration = segmentDuration;
+          }
         }
 
         duration = duration / 1000;
@@ -222,7 +246,8 @@ module.exports = function (_Renderer) {
             var isStartModified = start > 0,
                 isDurationModified = duration < unit.segment.mediaDuration,
                 isVolumeModified = unit.segment.volume < 1,
-                isPlaybackRateModified = unit.segment.playbackRate !== 1.0;
+                isPlaybackRateModified = unit.segment.playbackRate !== 1.0,
+                hasAudioFade = unit.segment.audioFadeDuration > 0;
             if (isStartModified || isDurationModified || isVolumeModified || isPlaybackRateModified) {
               filename = this.generateVideoFilename();
               command = 'ffmpeg';
@@ -230,9 +255,14 @@ module.exports = function (_Renderer) {
               if (isDurationModified) command += ' -t ' + duration;
               command += ' -i ' + unit.currentFile;
 
-              if (isVolumeModified || isPlaybackRateModified) {
-                var rate = unit.segment.playbackRate;var inverseRate = 1 / rate;
-                command += ' -filter_complex "[0:v]setpts=' + inverseRate + '*PTS[v];[0:a]atempo=' + rate + ',volume=' + unit.segment.volume + '[a]" -map "[v]" -map "[a]"';
+              if (isVolumeModified || isPlaybackRateModified || hasAudioFade) {
+                var rate = unit.segment.playbackRate;
+                command += ' -filter_complex "[0:v]setpts=' + 1 / rate + '*PTS[v];[0:a]atempo=' + rate + ',volume=' + unit.segment.volume;
+                if (hasAudioFade) {
+                  var audioFadeDuration = unit.segment.audioFadeDuration;
+                  command += ',afade=t=in:st=0:d=' + audioFadeDuration + ',afade=t=out:st=' + (duration - audioFadeDuration) + ':d=' + audioFadeDuration;
+                }
+                command += '[a]" -map "[v]" -map "[a]"';
               }
 
               if (isDurationModified) command += ' -t ' + duration;
@@ -244,7 +274,7 @@ module.exports = function (_Renderer) {
             break;
         }
 
-        if (filename && command) {
+        if (filename && command && duration > 0.001) {
           this.executeFFMPEGCommand(command);
           unit.currentFile = filename;
         }
