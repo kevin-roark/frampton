@@ -34,6 +34,18 @@ module.exports = class Segment {
     }
   }
 
+  /// Chaining Configuration
+
+  setOnStart (onStart) {
+    this.onStart = onStart;
+    return this;
+  }
+
+  setOnComplete (onComplete) {
+    this.onComplete = onComplete;
+    return this;
+  }
+
   /// Change Notification
 
   addChangeHandler(propertyName, fn) {
