@@ -27,6 +27,7 @@ module.exports = function (_Segment) {
     // media config
     _this.filename = options.filename;
     _this.mediaDuration = options.duration;
+    _this.audioSampleRate = options.audioSampleRate || 44100;
 
     // segment config
     _this.startTime = options.startTime || 0;
@@ -81,7 +82,7 @@ module.exports = function (_Segment) {
   }, {
     key: 'setDuration',
     value: function setDuration(duration, startAtEnd) {
-      this.duration = Math.min(duration, this.mediaDuration);
+      this.duration = Math.min(duration, this.mediaDuration * Math.max(this.playbackRate, 1.0));
 
       var maximalStartTime = this.mediaDuration - this.duration;
       if (startAtEnd || this.startTime > maximalStartTime) {

@@ -9,7 +9,7 @@ module.exports = function finiteLoopingSegment(segment) {
   // create the list of cloned segments to loop
   var clonedSegments = [];
   for (var i = 0; i < timesToLoop; i++) {
-    clonedSegments.push(segment.clone());
+    clonedSegments.push(i === 0 ? segment : segment.clone());
   }
 
   options.segments = clonedSegments;

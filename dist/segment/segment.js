@@ -47,6 +47,21 @@ module.exports = function () {
       }
     }
 
+    /// Chaining Configuration
+
+  }, {
+    key: 'setOnStart',
+    value: function setOnStart(onStart) {
+      this.onStart = onStart;
+      return this;
+    }
+  }, {
+    key: 'setOnComplete',
+    value: function setOnComplete(onComplete) {
+      this.onComplete = onComplete;
+      return this;
+    }
+
     /// Change Notification
 
   }, {

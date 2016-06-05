@@ -51,7 +51,14 @@ module.exports = class WebRenderer3D extends WebRenderer {
     }
   }
 
-  renderVideoSegment(segment, { offset = 0 }) {
+  renderVideoSegment (segment, options) {
+    if (!segment.threeOptions) {
+      super.renderVideoSegment(segment, options);
+      return;
+    }
+
+    let { offset } = options;
+
     var self = this;
 
     let { videoMeshWidth = 150, videoSourceWidth = 854, videoMeshHeight = 75, videoSourceHeight = 480, meshConfigurer, geometryProvider } = segment.threeOptions;
@@ -61,6 +68,7 @@ module.exports = class WebRenderer3D extends WebRenderer {
 
     var video = document.createElement('video');
     video.preload = true;
+    segment._backingVideo = video;
 
     var filename = video.canPlayType('video/mp4').length > 0 ? segment.filename : segment.extensionlessName() + '.webm';
     video.src = this.videoSourceMaker(filename);

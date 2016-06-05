@@ -140,6 +140,7 @@ module.exports = function (_Renderer) {
       var video = document.createElement('video');
       video.preload = true;
       video.className = 'frampton-video';
+      segment._backingVideo = video;
 
       var filename = video.canPlayType('video/mp4').length > 0 ? segment.filename : segment.extensionlessName() + '.webm';
       video.src = this.videoSourceMaker(filename);

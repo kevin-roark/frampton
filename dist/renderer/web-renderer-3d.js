@@ -76,9 +76,14 @@ module.exports = function (_WebRenderer) {
     }
   }, {
     key: 'renderVideoSegment',
-    value: function renderVideoSegment(segment, _ref) {
-      var _ref$offset = _ref.offset;
-      var offset = _ref$offset === undefined ? 0 : _ref$offset;
+    value: function renderVideoSegment(segment, options) {
+      if (!segment.threeOptions) {
+        _get(Object.getPrototypeOf(WebRenderer3D.prototype), 'renderVideoSegment', this).call(this, segment, options);
+        return;
+      }
+
+      var offset = options.offset;
+
 
       var self = this;
 
@@ -100,6 +105,7 @@ module.exports = function (_WebRenderer) {
 
       var video = document.createElement('video');
       video.preload = true;
+      segment._backingVideo = video;
 
       var filename = video.canPlayType('video/mp4').length > 0 ? segment.filename : segment.extensionlessName() + '.webm';
       video.src = this.videoSourceMaker(filename);
