@@ -24,6 +24,7 @@ As of now, setTimeouts are *not* supported in frampton's VideoRenderer. Implemen
 
 ## Roadmap
 
+* create the EXE renderer using Electron
 * implement Z-index support in VideoRenderer
 * flesh out image-sequence support in all renderers
 * support alternative time specification like beats, percent, etc.
