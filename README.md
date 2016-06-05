@@ -1,5 +1,5 @@
 # frampton
-A suite of video composition tools. Documentation coming soon.
+A suite of video composition tools. More Documentation coming soon.
 Have you heard of [Hollis Frampton](https://en.wikipedia.org/wiki/Hollis_Frampton)?
 
 ## Gallery
@@ -27,7 +27,11 @@ As of now, setTimeouts are *not* supported in frampton's VideoRenderer. Implemen
 * implement Z-index support in VideoRenderer
 * flesh out image-sequence support in all renderers
 * support alternative time specification like beats, percent, etc.
-* support live media config modification in web-renders
+* iron out kinks like:
+  * multiple-audio-at-the-same-time with video-renderer (MLT?)
+  * consistent playbackRate support
+* interfacing with premiere?? :) (:
+* later on: nicer interfaces for non-programmers
 
 # How To's
 
