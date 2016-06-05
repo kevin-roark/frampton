@@ -8,7 +8,7 @@ var util = require('../etc/util');
 var AudioSegment = require('../segment/audio-segment');
 
 module.exports = class VideoRenderer extends Renderer {
-  constructor(options) {
+  constructor (options) {
     super(options);
 
     this.renderedVideoName = options.renderedVideoName || this.mediaConfig.__renderedVideoName || 'frampton-final.mp4';
@@ -34,7 +34,7 @@ module.exports = class VideoRenderer extends Renderer {
     this.watchScheduleActivity();
   }
 
-  watchScheduleActivity() {
+  watchScheduleActivity () {
     this.activityInterval = setInterval(() => {
       var lastScheduleTime = this.lastScheduleTime || 0;
       var now = new Date();
@@ -44,7 +44,7 @@ module.exports = class VideoRenderer extends Renderer {
     }, 30);
   }
 
-  handleLackOfActivity() {
+  handleLackOfActivity () {
     if (this.log) {
       console.log('handling lack of activity...');
     }
@@ -80,7 +80,7 @@ module.exports = class VideoRenderer extends Renderer {
     }
   }
 
-  renderToVideo() {
+  renderToVideo () {
     if (!fs.existsSync(this.outputFilepath)) {
       fs.mkdirSync(this.outputFilepath);
     }
@@ -110,8 +110,7 @@ module.exports = class VideoRenderer extends Renderer {
     units.forEach((unit) => {
       if (unit.segment.segmentType !== 'audio') {
         visualUnits.push(unit);
-      }
-      else {
+      } else {
         audioUnits.push(unit);
       }
     });
@@ -135,7 +134,7 @@ module.exports = class VideoRenderer extends Renderer {
     console.log(`\nrendered video to ${outname}\n`);
   }
 
-  executeFFMPEGCommand(command) {
+  executeFFMPEGCommand (command) {
     if (this.log) {
       console.log(`running: ${command}`);
     }
@@ -143,15 +142,16 @@ module.exports = class VideoRenderer extends Renderer {
     return execSync(command, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
   }
 
-  cutUnitsIntoChunks(units, audioUnits) {
+  cutUnitsIntoChunks (units, audioUnits) {
     // trim the video file of each unit to the actual portion renderered
     for (var idx = 0; idx < units.length; idx++) {
       var unit = units[idx];
+      var segment = unit.segment;
 
-      var start = unit.segment.startTime;
+      var start = segment.startTime;
 
       // TODO: account for z-indexing in this shit, right now it will always assume next video has higher z
-      var segmentDuration = unit.segment.msDuration();
+      var segmentDuration = segment.msDuration();
       var duration = segmentDuration;
       if (idx < units.length - 1) {
         var nextUnit = units[idx + 1];
@@ -168,7 +168,7 @@ module.exports = class VideoRenderer extends Renderer {
           if (afterNextUnitDuration > 0) {
             if (idx === units.length - 2 || units[idx + 2].offset > nextUnitEndTime) {
               var afterNextUnitStartTime = start + (duration - afterNextUnitDuration);
-              var newSegment = unit.segment.clone().setStartTime(afterNextUnitStartTime).setDuration(afterNextUnitDuration);
+              var newSegment = segment.clone().setStartTime(afterNextUnitStartTime).setDuration(afterNextUnitDuration);
 
               var newUnit = new ScheduledUnit(newSegment, nextUnitEndTime);
               newUnit.currentFile = unit.currentFile;
@@ -179,14 +179,14 @@ module.exports = class VideoRenderer extends Renderer {
 
           // add an audio segment with just the audio from the part of this segment that the next segment overlaps
           if (this.maintainAudioWhenVideoCuts) {
-            let audioStartTime = unit.segment.startTime + duration / 1000;
+            let audioStartTime = segment.startTime + duration / 1000;
             let audioDuration = segmentDuration - duration;
             if (afterNextUnitDuration > 0) audioDuration -= afterNextUnitDuration;
 
             if (audioDuration > 10) {
               let audioSegment = new AudioSegment({
-                filename: unit.segment.filename,
-                duration: unit.segment.mediaDuration,
+                filename: segment.filename,
+                duration: segment.mediaDuration,
                 startTime: audioStartTime
               });
               audioSegment.setDuration(audioDuration / 1000);
@@ -198,8 +198,7 @@ module.exports = class VideoRenderer extends Renderer {
               this.insertScheduledUnit(audioUnit, audioUnits);
             }
           }
-        }
-        else {
+        } else {
           duration = segmentDuration;
         }
       }
@@ -207,7 +206,7 @@ module.exports = class VideoRenderer extends Renderer {
       duration = duration / 1000;
 
       let filename, command;
-      switch (unit.segment.segmentType) {
+      switch (segment.segmentType) {
         case 'image':
           filename = this.generateVideoFilename();
           command = `ffmpeg -f lavfi -i aevalsrc=0 -loop 1 -i ${unit.currentFile} -t ${duration} -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -pix_fmt yuv420p -c:v h264 -c:a aac -threads 0 ${filename}`;
@@ -252,7 +251,7 @@ module.exports = class VideoRenderer extends Renderer {
     }
   }
 
-  concatenateUnits(units) {
+  concatenateUnits (units) {
     var files = [];
     units.forEach((unit) => {
       files.push(unit.currentFile);
@@ -261,17 +260,16 @@ module.exports = class VideoRenderer extends Renderer {
     return this.concatenateFiles(files);
   }
 
-  concatenateFiles(files) {
+  concatenateFiles (files) {
     // https://trac.ffmpeg.org/wiki/Concatenate
     if (this.inputVideosHaveDifferentCodecs || this.stripAudioFromAllVideos) {
       return this.concatenateFilesWithConcatFilter(files);
-    }
-    else {
+    } else {
       return this.concatenateFilesWithConcatCommand(files);
     }
   }
 
-  concatenateFilesWithConcatFilter(files) {
+  concatenateFilesWithConcatFilter (files) {
     var includeAudio = !this.stripAudioFromAllVideos;
 
     var concat = (arr) => {
@@ -279,13 +277,13 @@ module.exports = class VideoRenderer extends Renderer {
 
       var chunks = util.splitArray(arr, 32);
       chunks.forEach((chunk) => {
-        var command = `ffmpeg `;
+        var command = 'ffmpeg ';
 
         chunk.forEach((file) => {
           command += `-i ${file} `;
         });
 
-        command += ` -filter_complex "`;
+        command += ' -filter_complex "';
 
         var videoTrackNames = [];
         chunk.forEach((file, i) => {
@@ -323,7 +321,7 @@ module.exports = class VideoRenderer extends Renderer {
     return concatFiles[0];
   }
 
-  concatenateFilesWithConcatCommand(files) {
+  concatenateFilesWithConcatCommand (files) {
     var concatVideoFilename = this.generateVideoFilename();
 
     // one video per line
@@ -346,20 +344,20 @@ module.exports = class VideoRenderer extends Renderer {
     return concatVideoFilename;
   }
 
-  mixAudioUnits(videoFile, units) {
+  mixAudioUnits (videoFile, audioUnits) {
     // truly helpful: http://superuser.com/questions/716320/ffmpeg-placing-audio-at-specific-location
     // other resource: http://stackoverflow.com/questions/32988106/ffmpeg-replace-part-of-audio-in-mp4-video-file
 
-    if (units.length === 0) {
+    if (audioUnits.length === 0) {
       return videoFile;
     }
 
     // reverse units so that we are dealing the highest delayed items first
-    units.reverse();
+    audioUnits.reverse();
 
     var currentVideoFile = videoFile;
 
-    var unitChunks = util.splitArray(units, 31);
+    var unitChunks = util.splitArray(audioUnits, 31);
     unitChunks.forEach((units) => {
       var command = `ffmpeg -i ${currentVideoFile}`;
       units.forEach((unit) => {
@@ -369,10 +367,10 @@ module.exports = class VideoRenderer extends Renderer {
 
       var names = '';
 
-      command += ` -filter_complex "`;
+      command += ' -filter_complex "';
       units.forEach((unit, idx) => {
         var segment = unit.segment;
-        command += `[${idx+1}:a]asetpts=PTS-STARTPTS,volume=${segment.volume}`;
+        command += `[${idx + 1}:a]asetpts=PTS-STARTPTS,volume=${segment.volume}`;
         if (segment.playbackRate !== 1.0) {
           command += `,atempo=${segment.playbackRate}`;
         }
@@ -385,7 +383,7 @@ module.exports = class VideoRenderer extends Renderer {
         if (unit.offset > 0) {
           command += `,adelay=${unit.offset}|${unit.offset}`; // supposed to be in ms wow!!
         }
-        var name = `[aud${idx+1}]`;
+        var name = `[aud${idx + 1}]`;
         command += `${name};`;
         names += name;
       });
@@ -398,12 +396,12 @@ module.exports = class VideoRenderer extends Renderer {
       currentVideoFile = newVideoFile;
     });
 
-    units.reverse(); // revert units back to its initial state
+    audioUnits.reverse(); // revert units back to its initial state
 
     return currentVideoFile;
   }
 
-  removeUnrenderableUnits(units) {
+  removeUnrenderableUnits (units) {
     for (var i = units.length - 1; i >= 0; i--) {
       var unit = units[i];
       if (this.enforceHardDurationLimit && unit.offset + unit.segment.msDuration() > this.maxVideoDuration) {
@@ -414,20 +412,20 @@ module.exports = class VideoRenderer extends Renderer {
 
   /// Filesystem
 
-  getFilename(name) {
+  getFilename (name) {
     return path.join(this.outputFilepath, name);
   }
 
-  getVideoFilename(name) {
+  getVideoFilename (name) {
     return this.getFilename(`${name}.mp4`);
   }
 
-  generateVideoFilename() {
+  generateVideoFilename () {
     this.filenameIndex += 1;
     return this.getVideoFilename(this.filenameIndex);
   }
 
-  deleteTemporaryFiles() {
+  deleteTemporaryFiles () {
     for (var i = 1; i <= this.filenameIndex; i++) {
       var filename = this.getVideoFilename(i);
       fs.unlink(filename, () => {
@@ -438,7 +436,7 @@ module.exports = class VideoRenderer extends Renderer {
 
   /// Scheduling
 
-  scheduleSegmentRender(segment, delay) {
+  scheduleSegmentRender (segment, delay) {
     super.scheduleSegmentRender(segment, delay);
 
     this.renderSegment(segment, {offset: delay});
@@ -446,7 +444,7 @@ module.exports = class VideoRenderer extends Renderer {
     this.lastScheduleTime = new Date();
   }
 
-  scheduleMediaSegment(segment, offset) {
+  scheduleMediaSegment (segment, offset) {
     if (this.log) {
       console.log(`scheduling ${segment.simpleName()} at ${offset}`);
     }
@@ -461,19 +459,19 @@ module.exports = class VideoRenderer extends Renderer {
 
   /// Rendering
 
-  renderVideoSegment(segment, options) {
+  renderVideoSegment (segment, options) {
     this.renderMediaSegment(segment, options);
   }
 
-  renderImageSegment(segment, options) {
+  renderImageSegment (segment, options) {
     this.renderMediaSegment(segment, options);
   }
 
-  renderAudioSegment(segment, options) {
+  renderAudioSegment (segment, options) {
     this.renderMediaSegment(segment, options);
   }
 
-  renderMediaSegment(segment, {offset=0}) {
+  renderMediaSegment (segment, {offset = 0}) {
     this.scheduleMediaSegment(segment, offset);
 
     if (segment.loop) {

@@ -12,6 +12,7 @@ module.exports = class MediaSegment extends Segment {
     // media config
     this.filename = options.filename;
     this.mediaDuration = options.duration;
+    this.audioSampleRate = options.audioSampleRate || 44100;
 
     // segment config
     this.startTime = options.startTime || 0;
