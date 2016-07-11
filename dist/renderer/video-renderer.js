@@ -175,12 +175,14 @@ module.exports = function (_Renderer) {
       // trim the video file of each unit to the actual portion renderered
       for (var idx = 0; idx < units.length; idx++) {
         var unit = units[idx];
+        var segment = unit.segment;
 
-        var start = unit.segment.startTime;
+        var start = segment.startTime;
 
         // TODO: account for z-indexing in this shit, right now it will always assume next video has higher z
-        var segmentDuration = unit.segment.msDuration();
+        var segmentDuration = segment.msDuration();
         var duration = segmentDuration;
+        console.log('duration at first ' + duration);
         if (idx < units.length - 1) {
           var nextUnit = units[idx + 1];
           var offset = unit.offset + segmentDuration;
@@ -196,7 +198,7 @@ module.exports = function (_Renderer) {
             if (afterNextUnitDuration > 0) {
               if (idx === units.length - 2 || units[idx + 2].offset > nextUnitEndTime) {
                 var afterNextUnitStartTime = start + (duration - afterNextUnitDuration);
-                var newSegment = unit.segment.clone().setStartTime(afterNextUnitStartTime).setDuration(afterNextUnitDuration);
+                var newSegment = segment.clone().setStartTime(afterNextUnitStartTime).setDuration(afterNextUnitDuration);
 
                 var newUnit = new ScheduledUnit(newSegment, nextUnitEndTime);
                 newUnit.currentFile = unit.currentFile;
@@ -207,14 +209,14 @@ module.exports = function (_Renderer) {
 
             // add an audio segment with just the audio from the part of this segment that the next segment overlaps
             if (this.maintainAudioWhenVideoCuts) {
-              var audioStartTime = unit.segment.startTime + duration / 1000;
+              var audioStartTime = segment.startTime + duration / 1000;
               var audioDuration = segmentDuration - duration;
               if (afterNextUnitDuration > 0) audioDuration -= afterNextUnitDuration;
 
               if (audioDuration > 10) {
                 var audioSegment = new AudioSegment({
-                  filename: unit.segment.filename,
-                  duration: unit.segment.mediaDuration,
+                  filename: segment.filename,
+                  duration: segment.mediaDuration,
                   startTime: audioStartTime
                 });
                 audioSegment.setDuration(audioDuration / 1000);
@@ -231,11 +233,13 @@ module.exports = function (_Renderer) {
           }
         }
 
+        console.log('duration later ' + duration);
+
         duration = duration / 1000;
 
         var filename = void 0,
             command = void 0;
-        switch (unit.segment.segmentType) {
+        switch (segment.segmentType) {
           case 'image':
             filename = this.generateVideoFilename();
             command = 'ffmpeg -f lavfi -i aevalsrc=0 -loop 1 -i ' + unit.currentFile + ' -t ' + duration + ' -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -pix_fmt yuv420p -c:v h264 -c:a aac -threads 0 ' + filename;
@@ -244,10 +248,10 @@ module.exports = function (_Renderer) {
           case 'video':
             // only perform the trim if *strictly* necessary
             var isStartModified = start > 0,
-                isDurationModified = duration < unit.segment.mediaDuration,
-                isVolumeModified = unit.segment.volume < 1,
-                isPlaybackRateModified = unit.segment.playbackRate !== 1.0,
-                hasAudioFade = unit.segment.audioFadeDuration > 0;
+                isDurationModified = duration < segment.mediaDuration / segment.playbackRate,
+                isVolumeModified = segment.volume < 1,
+                isPlaybackRateModified = segment.playbackRate !== 1.0,
+                hasAudioFade = segment.audioFadeDuration > 0;
             if (isStartModified || isDurationModified || isVolumeModified || isPlaybackRateModified) {
               filename = this.generateVideoFilename();
               command = 'ffmpeg';
@@ -256,10 +260,10 @@ module.exports = function (_Renderer) {
               command += ' -i ' + unit.currentFile;
 
               if (isVolumeModified || isPlaybackRateModified || hasAudioFade) {
-                var rate = unit.segment.playbackRate;
-                command += ' -filter_complex "[0:v]setpts=' + 1 / rate + '*PTS[v];[0:a]atempo=' + rate + ',volume=' + unit.segment.volume;
+                var rate = segment.playbackRate;
+                command += ' -filter_complex "[0:v]setpts=' + 1 / rate + '*PTS[v];[0:a]asetrate=' + segment.audioSampleRate * rate + ',volume=' + segment.volume;
                 if (hasAudioFade) {
-                  var audioFadeDuration = unit.segment.audioFadeDuration;
+                  var audioFadeDuration = segment.audioFadeDuration;
                   command += ',afade=t=in:st=0:d=' + audioFadeDuration + ',afade=t=out:st=' + (duration - audioFadeDuration) + ':d=' + audioFadeDuration;
                 }
                 command += '[a]" -map "[v]" -map "[a]"';
@@ -381,22 +385,22 @@ module.exports = function (_Renderer) {
     }
   }, {
     key: 'mixAudioUnits',
-    value: function mixAudioUnits(videoFile, units) {
+    value: function mixAudioUnits(videoFile, audioUnits) {
       var _this6 = this;
 
       // truly helpful: http://superuser.com/questions/716320/ffmpeg-placing-audio-at-specific-location
       // other resource: http://stackoverflow.com/questions/32988106/ffmpeg-replace-part-of-audio-in-mp4-video-file
 
-      if (units.length === 0) {
+      if (audioUnits.length === 0) {
         return videoFile;
       }
 
       // reverse units so that we are dealing the highest delayed items first
-      units.reverse();
+      audioUnits.reverse();
 
       var currentVideoFile = videoFile;
 
-      var unitChunks = util.splitArray(units, 31);
+      var unitChunks = util.splitArray(audioUnits, 31);
       unitChunks.forEach(function (units) {
         var command = 'ffmpeg -i ' + currentVideoFile;
         units.forEach(function (unit) {
@@ -411,7 +415,7 @@ module.exports = function (_Renderer) {
           var segment = unit.segment;
           command += '[' + (idx + 1) + ':a]asetpts=PTS-STARTPTS,volume=' + segment.volume;
           if (segment.playbackRate !== 1.0) {
-            command += ',atempo=' + segment.playbackRate;
+            command += ',asetrate=' + segment.audioSampleRate * segment.playbackRate;
           }
           if (segment.fadeInDuration) {
             command += ',afade=t=in:st=0:d=' + segment.fadeInDuration;
@@ -435,7 +439,7 @@ module.exports = function (_Renderer) {
         currentVideoFile = newVideoFile;
       });
 
-      units.reverse(); // revert units back to its initial state
+      audioUnits.reverse(); // revert units back to its initial state
 
       return currentVideoFile;
     }

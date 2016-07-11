@@ -153,6 +153,7 @@ module.exports = class VideoRenderer extends Renderer {
       // TODO: account for z-indexing in this shit, right now it will always assume next video has higher z
       var segmentDuration = segment.msDuration();
       var duration = segmentDuration;
+      console.log('duration at first ' + duration);
       if (idx < units.length - 1) {
         var nextUnit = units[idx + 1];
         var offset = unit.offset + segmentDuration;
@@ -203,6 +204,8 @@ module.exports = class VideoRenderer extends Renderer {
         }
       }
 
+      console.log('duration later ' + duration);
+
       duration = duration / 1000;
 
       let filename, command;
@@ -215,10 +218,10 @@ module.exports = class VideoRenderer extends Renderer {
         case 'video':
           // only perform the trim if *strictly* necessary
           let isStartModified = start > 0,
-              isDurationModified = duration < unit.segment.mediaDuration,
-              isVolumeModified = unit.segment.volume < 1,
-              isPlaybackRateModified = unit.segment.playbackRate !== 1.0,
-              hasAudioFade = unit.segment.audioFadeDuration > 0;
+            isDurationModified = duration < segment.mediaDuration / segment.playbackRate,
+            isVolumeModified = segment.volume < 1,
+            isPlaybackRateModified = segment.playbackRate !== 1.0,
+            hasAudioFade = segment.audioFadeDuration > 0;
           if (isStartModified || isDurationModified || isVolumeModified || isPlaybackRateModified) {
             filename = this.generateVideoFilename();
             command = 'ffmpeg';
@@ -227,13 +230,13 @@ module.exports = class VideoRenderer extends Renderer {
             command += ` -i ${unit.currentFile}`;
 
             if (isVolumeModified || isPlaybackRateModified || hasAudioFade) {
-              let rate = unit.segment.playbackRate;
-              command += ` -filter_complex "[0:v]setpts=${1 / rate}*PTS[v];[0:a]atempo=${rate},volume=${unit.segment.volume}`;
+              let rate = segment.playbackRate;
+              command += ` -filter_complex "[0:v]setpts=${1 / rate}*PTS[v];[0:a]asetrate=${segment.audioSampleRate * rate},volume=${segment.volume}`;
               if (hasAudioFade) {
-                let audioFadeDuration = unit.segment.audioFadeDuration;
+                let audioFadeDuration = segment.audioFadeDuration;
                 command += `,afade=t=in:st=0:d=${audioFadeDuration},afade=t=out:st=${duration - audioFadeDuration}:d=${audioFadeDuration}`;
               }
-              command += `[a]" -map "[v]" -map "[a]"`;
+              command += '[a]" -map "[v]" -map "[a]"';
             }
 
             if (isDurationModified) command += ` -t ${duration}`;
@@ -372,7 +375,7 @@ module.exports = class VideoRenderer extends Renderer {
         var segment = unit.segment;
         command += `[${idx + 1}:a]asetpts=PTS-STARTPTS,volume=${segment.volume}`;
         if (segment.playbackRate !== 1.0) {
-          command += `,atempo=${segment.playbackRate}`;
+          command += `,asetrate=${segment.audioSampleRate * segment.playbackRate}`;
         }
         if (segment.fadeInDuration) {
           command += `,afade=t=in:st=0:d=${segment.fadeInDuration}`;

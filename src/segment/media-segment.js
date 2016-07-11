@@ -58,7 +58,7 @@ module.exports = class MediaSegment extends Segment {
   }
 
   setDuration(duration, startAtEnd) {
-    this.duration = Math.min(duration, this.mediaDuration);
+    this.duration = Math.min(duration, this.mediaDuration * Math.max(this.playbackRate, 1.0));
 
     var maximalStartTime = this.mediaDuration - this.duration;
     if (startAtEnd || this.startTime > maximalStartTime) {
