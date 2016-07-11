@@ -33,7 +33,7 @@ module.exports = class WebRenderer extends Renderer {
 
   /// Scheduling
 
-  update(totalTime) {
+  update (totalTime) {
     window.requestAnimationFrame(this.update.bind(this));
     TWEEN.update(totalTime);
 
@@ -41,6 +41,14 @@ module.exports = class WebRenderer extends Renderer {
     var timeSinceLastUpdate = now - this.lastUpdateTime;
     this.lastUpdateTime = now;
 
+    this.handleScheduledItems(now, timeSinceLastUpdate);
+
+    for (var i = 0; i < this.updateFunctions.length; i++) {
+      this.updateFunctions[i].fn(timeSinceLastUpdate);
+    }
+  }
+
+  handleScheduledItems (now, timeSinceLastUpdate) {
     var timeToLoad = this.timeToLoadVideo + TimePerFrame;
     var scheduledRenders = this.scheduledRenders;
 
@@ -52,8 +60,7 @@ module.exports = class WebRenderer extends Renderer {
       if (timeUntilStart < timeToLoad) {
         // start to render, and mark for removal
         toRender.push({segment: scheduledRender.segment, options: {offset: Math.max(timeUntilStart, 0)}});
-      }
-      else {
+      } else {
         break; // because we sort by offset, we can break early
       }
     }
@@ -68,13 +75,9 @@ module.exports = class WebRenderer extends Renderer {
         this.renderSegment(renderModel.segment, renderModel.options);
       }
     }
-
-    for (i = 0; i < this.updateFunctions.length; i++) {
-      this.updateFunctions[i].fn(timeSinceLastUpdate);
-    }
   }
 
-  addUpdateFunction(fn) {
+  addUpdateFunction (fn) {
     var identifier = '' + Math.floor(Math.random() * 1000000000);
     this.updateFunctions.push({
       identifier: identifier,
@@ -82,6 +85,11 @@ module.exports = class WebRenderer extends Renderer {
     });
 
     return identifier;
+  }
+
+  setTimeout (fn, time) {
+    // TODO: let's make this precise with the render loop
+    setTimeout(fn, time);
   }
 
   removeUpdateFunctionWithIdentifier(identifier) {

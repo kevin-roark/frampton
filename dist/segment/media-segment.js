@@ -82,7 +82,7 @@ module.exports = function (_Segment) {
   }, {
     key: 'setDuration',
     value: function setDuration(duration, startAtEnd) {
-      this.duration = Math.min(duration, this.mediaDuration * Math.max(this.playbackRate, 1.0));
+      this.duration = Math.min(duration, this.mediaDuration);
 
       var maximalStartTime = this.mediaDuration - this.duration;
       if (startAtEnd || this.startTime > maximalStartTime) {

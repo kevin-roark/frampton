@@ -59,6 +59,15 @@ module.exports = function (_Renderer) {
       var timeSinceLastUpdate = now - this.lastUpdateTime;
       this.lastUpdateTime = now;
 
+      this.handleScheduledItems(now, timeSinceLastUpdate);
+
+      for (var i = 0; i < this.updateFunctions.length; i++) {
+        this.updateFunctions[i].fn(timeSinceLastUpdate);
+      }
+    }
+  }, {
+    key: 'handleScheduledItems',
+    value: function handleScheduledItems(now, timeSinceLastUpdate) {
       var timeToLoad = this.timeToLoadVideo + TimePerFrame;
       var scheduledRenders = this.scheduledRenders;
 
@@ -85,10 +94,6 @@ module.exports = function (_Renderer) {
           this.renderSegment(renderModel.segment, renderModel.options);
         }
       }
-
-      for (i = 0; i < this.updateFunctions.length; i++) {
-        this.updateFunctions[i].fn(timeSinceLastUpdate);
-      }
     }
   }, {
     key: 'addUpdateFunction',
@@ -101,6 +106,22 @@ module.exports = function (_Renderer) {
 
       return identifier;
     }
+  }, {
+    key: 'setTimeout',
+    value: function (_setTimeout) {
+      function setTimeout(_x, _x2) {
+        return _setTimeout.apply(this, arguments);
+      }
+
+      setTimeout.toString = function () {
+        return _setTimeout.toString();
+      };
+
+      return setTimeout;
+    }(function (fn, time) {
+      // TODO: let's make this precise with the render loop
+      setTimeout(fn, time);
+    })
   }, {
     key: 'removeUpdateFunctionWithIdentifier',
     value: function removeUpdateFunctionWithIdentifier(identifier) {
