@@ -10,7 +10,7 @@ require('string-natural-compare');
 
 var colorThief = new ColorThief();
 
-function getImageColors(image, options) {
+function getImageColors (image, options) {
   if (!options) options = {};
 
   var quality = options.colorQuality || 60;
@@ -27,13 +27,18 @@ function getImageColors(image, options) {
   };
 }
 
-function analyzeImage(image, options) {
-  return {
-    colors: getImageColors(image, options)
-  };
+function analyzeImage (image, options) {
+  var analyzed = {};
+
+  var analyzeColors = options.analyzeColors !== undefined ? options.analyzeColors : true;
+  if (analyzeColors) {
+    analyzed.colors = getImageColors(image, options);
+  }
+
+  return analyzed;
 }
 
-function analyzeVideoFrames(video, options={}, callback=()=>{}) {
+function analyzeVideoFrames (video, options = {}, callback = () => {}) {
   var videoDuration = simpleAnalysis.getVideoDuration(video);
   var fps = simpleAnalysis.getVideoFrameRate(video);
   var totalFrames = Math.floor(fps * videoDuration);
@@ -49,19 +54,18 @@ function analyzeVideoFrames(video, options={}, callback=()=>{}) {
   var frames = [];
   doNextSplit();
 
-  function doNextSplit() {
+  function doNextSplit () {
     var frameIndex = frames.length;
     split(frameIndex, () => {
       if (frames.length < totalFrames - 1 && frameIndex < frames.length) { // as long as we are growing and haven't reached total, keep going!
         doNextSplit();
-      }
-      else {
+      } else {
         finish();
       }
     });
   }
 
-  function finish() {
+  function finish () {
     var videoFrameData = {
       filename: video,
       duration: videoDuration,
@@ -73,7 +77,7 @@ function analyzeVideoFrames(video, options={}, callback=()=>{}) {
     callback(videoFrameData);
   }
 
-  function split(startFrame, callback=()=>{}) {
+  function split (startFrame, cb = () => {}) {
     var splitOut = _splitVideoIntoFrames(video, {
       fps: fps,
       startFrame: startFrame,
@@ -97,15 +101,14 @@ function analyzeVideoFrames(video, options={}, callback=()=>{}) {
     });
 
     if (removeImages) {
-      rimraf(splitOut.directory, {disableGlob: true}, callback);
-    }
-    else {
-      callback();
+      rimraf(splitOut.directory, {disableGlob: true}, cb);
+    } else {
+      cb();
     }
   }
 }
 
-function _convertColorToFormat(color, format) {
+function _convertColorToFormat (color, format) {
   switch (format) {
     case 'object':
       return {r: color[0], g: color[1], b: color[2]};
@@ -118,7 +121,7 @@ function _convertColorToFormat(color, format) {
   }
 }
 
-function _splitVideoIntoFrames(video, options) {
+function _splitVideoIntoFrames (video, options) {
   if (!options) options = {};
 
   var fps = options.fps || 30.0;
@@ -150,10 +153,9 @@ function _splitVideoIntoFrames(video, options) {
   };
 }
 
-function _executeFFMPEGCommand(command) {
+function _executeFFMPEGCommand (command) {
   return execSync(command, {stdio: ['pipe', 'pipe', 'ignore']}).toString();
 }
-
 
 module.exports.getImageColors = getImageColors;
 module.exports.analyzeImage = analyzeImage;

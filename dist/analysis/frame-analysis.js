@@ -31,9 +31,14 @@ function getImageColors(image, options) {
 }
 
 function analyzeImage(image, options) {
-  return {
-    colors: getImageColors(image, options)
-  };
+  var analyzed = {};
+
+  var analyzeColors = options.analyzeColors !== undefined ? options.analyzeColors : true;
+  if (analyzeColors) {
+    analyzed.colors = getImageColors(image, options);
+  }
+
+  return analyzed;
 }
 
 function analyzeVideoFrames(video) {
@@ -80,7 +85,7 @@ function analyzeVideoFrames(video) {
   }
 
   function split(startFrame) {
-    var callback = arguments.length <= 1 || arguments[1] === undefined ? function () {} : arguments[1];
+    var cb = arguments.length <= 1 || arguments[1] === undefined ? function () {} : arguments[1];
 
     var splitOut = _splitVideoIntoFrames(video, {
       fps: fps,
@@ -105,9 +110,9 @@ function analyzeVideoFrames(video) {
     });
 
     if (removeImages) {
-      rimraf(splitOut.directory, { disableGlob: true }, callback);
+      rimraf(splitOut.directory, { disableGlob: true }, cb);
     } else {
-      callback();
+      cb();
     }
   }
 }
