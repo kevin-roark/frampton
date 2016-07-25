@@ -1,10 +1,10 @@
 
 var MediaSegment = require('./media-segment');
 
-/// abstract superclass for Video, Color, Image
+/// abstract superclass for Video, Color
 /// Dynamic properties on web: opacity
 module.exports = class VisualSegment extends MediaSegment {
-  constructor(options) {
+  constructor (options) {
     super(options);
 
     this.segmentType = 'visual';
@@ -16,7 +16,7 @@ module.exports = class VisualSegment extends MediaSegment {
     this.left = options.left;
   }
 
-  copy(visualSegment) {
+  copy (visualSegment) {
     super.copy(visualSegment);
 
     this.z = visualSegment.z;
@@ -28,37 +28,37 @@ module.exports = class VisualSegment extends MediaSegment {
     return this;
   }
 
-  clone() {
+  clone () {
     return new VisualSegment({}).copy(this);
   }
 
   // Chaining Configuration
 
-  setOpacity(opacity) {
+  setOpacity (opacity) {
     this.opacity = opacity;
     this.notifyChangeHandlers('opacity', opacity);
     return this;
   }
 
-  setLeft(left) {
+  setLeft (left) {
     this.left = left;
     this.notifyChangeHandlers('left', left);
     return this;
   }
 
-  setTop(top) {
+  setTop (top) {
     this.top = top;
     this.notifyChangeHandlers('top', top);
     return this;
   }
 
-  setWidth(width) {
+  setWidth (width) {
     this.width = width;
     this.notifyChangeHandlers('width', width);
     return this;
   }
 
-  setZ(z) {
+  setZ (z) {
     this.z = z;
     this.notifyChangeHandlers('z', z);
     return this;

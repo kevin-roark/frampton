@@ -1,33 +1,33 @@
 
 module.exports = class Segment {
-  constructor(options) {
+  constructor (options) {
     this.onStart = options.onStart;
     this.onComplete = options.onComplete;
 
     this.changeHandlers = {};
   }
 
-  copy(segment) {
+  copy (segment) {
     this.onStart = segment.onStart;
     this.onComplete = segment.onComplete;
 
     return this;
   }
 
-  clone() {
+  clone () {
     return new Segment({}).copy(this);
   }
 
   /// Start and Finish
 
-  didStart() {
+  didStart () {
     if (this.onStart) {
       this.onStart();
       this.onStart = undefined;
     }
   }
 
-  cleanup() {
+  cleanup () {
     if (this.onComplete) {
       this.onComplete();
       this.onComplete = undefined;
@@ -48,12 +48,12 @@ module.exports = class Segment {
 
   /// Change Notification
 
-  addChangeHandler(propertyName, fn) {
+  addChangeHandler (propertyName, fn) {
     var handlers = this.getChangeHandlers(propertyName);
     handlers.push(fn);
   }
 
-  notifyChangeHandlers(propertyName, value) {
+  notifyChangeHandlers (propertyName, value) {
     var handlers = this.getChangeHandlers(propertyName);
 
     for (var i = 0; i < handlers.length; i++) {
@@ -61,7 +61,7 @@ module.exports = class Segment {
     }
   }
 
-  getChangeHandlers(propertyName) {
+  getChangeHandlers (propertyName) {
     var handlers = this.changeHandlers[propertyName];
     if (handlers !== undefined) {
       return handlers;
@@ -75,19 +75,19 @@ module.exports = class Segment {
 
   /// Generators
 
-  getDuration() {
+  getDuration () {
     return 0;
   }
 
-  msDuration() {
+  msDuration () {
     return this.getDuration() * 1000;
   }
 
-  simpleName() {
+  simpleName () {
     return 'plain segment';
   }
 
-  associatedSegments() {
+  associatedSegments () {
     return null;
   }
 
