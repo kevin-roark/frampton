@@ -7,16 +7,16 @@ var dahmer = require('./dahmer');
 var TimePerFrame = 16.67;
 
 module.exports = class WebRenderer extends Renderer {
-  constructor(options) {
+  constructor (options) {
     super(options);
 
     this.timeToLoadVideo = options.timeToLoadVideo || 4000;
     this.startDelayCorrection = options.startDelayCorrection || 1.8; // this adapts over time
     this.startPerceptionCorrection = options.startPerceptionCorrection || 13; // this is constant
 
-    this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : (filename) =>  {
+    this.videoSourceMaker = options.videoSourceMaker !== undefined ? options.videoSourceMaker : filename => {
       var mediaPath = this.mediaConfig.path;
-      if (mediaPath[mediaPath.length -1] !== '/') mediaPath += '/';
+      if (mediaPath[mediaPath.length - 1] !== '/') mediaPath += '/';
       return mediaPath + filename;
     };
 
@@ -92,7 +92,7 @@ module.exports = class WebRenderer extends Renderer {
     setTimeout(fn, time);
   }
 
-  removeUpdateFunctionWithIdentifier(identifier) {
+  removeUpdateFunctionWithIdentifier (identifier) {
     var indexOfIdentifier = -1;
     for (var i = 0; i < this.updateFunctions.length; i++) {
       if (this.updateFunctions[i].identifier === identifier) {
@@ -106,7 +106,7 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
-  scheduleSegmentRender(segment, delay) {
+  scheduleSegmentRender (segment, delay) {
     super.scheduleSegmentRender(segment, delay);
 
     var offset = window.performance.now() + delay;
@@ -117,7 +117,7 @@ module.exports = class WebRenderer extends Renderer {
 
   /// Rendering
 
-  renderVideoSegment(segment, {offset=0}) {
+  renderVideoSegment (segment, { offset = 0 }) {
     var self = this;
 
     var video = document.createElement('video');
@@ -135,14 +135,14 @@ module.exports = class WebRenderer extends Renderer {
     if (segment.left) { video.style.left = segment.left; }
 
     video.volume = segment.volume;
-    segment.addChangeHandler('volume', function(volume) {
+    segment.addChangeHandler('volume', function (volume) {
       video.volume = volume;
     });
 
     video.currentTime = segment.startTime;
 
     video.playbackRate = segment.playbackRate;
-    segment.addChangeHandler('playbackRate', function(playbackRate) {
+    segment.addChangeHandler('playbackRate', function (playbackRate) {
       video.playbackRate = playbackRate;
     });
 
@@ -154,7 +154,7 @@ module.exports = class WebRenderer extends Renderer {
     var expectedStart = window.performance.now() + offset;
 
     var hasPlayedFirstTime = false;
-    video.addEventListener('playing', function() {
+    video.addEventListener('playing', function () {
       if (hasPlayedFirstTime) return;
 
       hasPlayedFirstTime = true;
@@ -171,15 +171,13 @@ module.exports = class WebRenderer extends Renderer {
       self.videosPlayed += 1;
       if (self.videosPlayed === 1) {
         self.meanStartDelay = startDelay;
-      }
-      else {
+      } else {
         self.meanStartDelay = (self.meanStartDelay * (self.videosPlayed - 1) + startDelay) / (self.videosPlayed);
 
         if (Math.abs(self.meanStartDelay > 1)) {
           if (self.meanStartDelay > 0.05 && self.startDelayCorrection < 3) {
             self.startDelayCorrection += 0.05;
-          }
-          else if (self.meanStartDelay < -0.05 && self.startDelayCorrection > 0.05) {
+          } else if (self.meanStartDelay < -0.05 && self.startDelayCorrection > 0.05) {
             self.startDelayCorrection -= 0.05;
           }
         }
@@ -193,7 +191,7 @@ module.exports = class WebRenderer extends Renderer {
 
     setTimeout(start, offset - this.startDelayCorrection - this.startPerceptionCorrection);
 
-    function start() {
+    function start () {
       video.play();
 
       video.style.display = displayStyle;
@@ -207,16 +205,15 @@ module.exports = class WebRenderer extends Renderer {
         dahmer.setTransition(video, transition);
 
         // fade in
-        setTimeout(function() {
+        setTimeout(function () {
           video.style.opacity = segment.opacity;
         }, 1);
 
         // fade out
-        setTimeout(function() {
+        setTimeout(function () {
           video.style.opacity = 0;
         }, segmentDuration - videoFadeDuration);
-      }
-      else {
+      } else {
         self.setVisualSegmentOpacity(segment, video);
       }
 
@@ -225,7 +222,7 @@ module.exports = class WebRenderer extends Renderer {
       segment.didStart();
     }
 
-    function end() {
+    function end () {
       if (self.log) {
         var now = window.performance.now();
         var expectedEnd = expectedStart + segmentDuration;
@@ -235,8 +232,7 @@ module.exports = class WebRenderer extends Renderer {
       if (segment.loop) {
         video.currentTime = segment.startTime;
         setTimeout(end, segmentDuration);
-      }
-      else {
+      } else {
         video.parentNode.removeChild(video);
         video.src = '';
         segment.cleanup();
@@ -244,7 +240,7 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
-  fadeAudioForVideoSegment(segment, video) {
+  fadeAudioForVideoSegment (segment, video) {
     var audioFadeDuration = segment.audioFadeDuration || this.audioFadeDuration;
     if (audioFadeDuration) {
       var segmentDuration = segment.msDuration();
@@ -256,7 +252,7 @@ module.exports = class WebRenderer extends Renderer {
         .to({volume: segment.volume}, audioFadeDuration)
         .start();
 
-      setTimeout(function() {
+      setTimeout(function () {
         // fade out
         new TWEEN.Tween(video)
           .to({volume: 0}, audioFadeDuration)
@@ -265,7 +261,7 @@ module.exports = class WebRenderer extends Renderer {
     }
   }
 
-  renderTextSegment(segment, {offset=0}) {
+  renderTextSegment (segment, { offset = 0 }) {
     var self = this;
 
     var div = document.createElement('div');
@@ -289,19 +285,19 @@ module.exports = class WebRenderer extends Renderer {
     setTimeout(start, offset);
     setTimeout(end, offset + segment.msDuration());
 
-    function start() {
+    function start () {
       div.style.display = 'block';
       self.setVisualSegmentOpacity(segment, div);
       segment.didStart();
     }
 
-    function end() {
+    function end () {
       div.parentNode.removeChild(div);
       segment.cleanup();
     }
   }
 
-  renderColorSegment(segment, {offset=0}) {
+  renderColorSegment (segment, { offset = 0 }) {
     var self = this;
 
     var div = document.createElement('div');
@@ -313,7 +309,7 @@ module.exports = class WebRenderer extends Renderer {
     if (segment.top) { div.style.top = segment.top; }
     if (segment.left) { div.style.left = segment.left; }
 
-    if (segment.transitionBetweenColors) { div.style.transition = `background-color 5ms`; }
+    if (segment.transitionBetweenColors) { div.style.transition = 'background-color 5ms'; }
 
     var displayStyle = div.style.display || 'block';
     div.style.display = 'none';
@@ -324,7 +320,7 @@ module.exports = class WebRenderer extends Renderer {
       if (this.log) {
         console.log(`loading color frames for: ${segment.filename}`);
       }
-      this.getJSON(this.videoSourceMaker(segment.filename), (framesData) => {
+      this.getJSON(this.videoSourceMaker(segment.filename), framesData => {
         segment.setFramesData(framesData);
 
         if (framesDataResponseCallback) framesDataResponseCallback();
@@ -334,12 +330,11 @@ module.exports = class WebRenderer extends Renderer {
 
     if (offset > 0) {
       setTimeout(start, offset);
-    }
-    else {
+    } else {
       start();
     }
 
-    function start() {
+    function start () {
       if (!segment.framesData) {
         framesDataResponseCallback = () => { start(); };
         return;
@@ -366,7 +361,7 @@ module.exports = class WebRenderer extends Renderer {
 
       var fnIdentifier = self.addUpdateFunction(updateColorRender);
 
-      function updateColorRender(timeDelta) {
+      function updateColorRender (timeDelta) {
         var deltaWithLeftoverTime = timeDelta + lastUpdateLeftoverTime;
 
         var frames = Math.floor(deltaWithLeftoverTime / msPerFrame);
@@ -377,8 +372,7 @@ module.exports = class WebRenderer extends Renderer {
         if (currentFrameIndex >= segment.numberOfColors()) {
           if (segment.loop) {
             currentFrameIndex = currentFrameIndex - segment.numberOfColors();
-          }
-          else {
+          } else {
             end(fnIdentifier);
             return;
           }
@@ -391,7 +385,7 @@ module.exports = class WebRenderer extends Renderer {
         }
       }
 
-      function updateMSPerFrame() {
+      function updateMSPerFrame () {
         msPerFrame = segment.msDuration() / segment.numberOfColors();
       }
 
@@ -400,7 +394,7 @@ module.exports = class WebRenderer extends Renderer {
       }
     }
 
-    function end(fnIdentifier) {
+    function end (fnIdentifier) {
       div.parentNode.removeChild(div);
       segment.cleanup();
 
@@ -415,14 +409,13 @@ module.exports = class WebRenderer extends Renderer {
   renderAudioSegment(segment, options) {
     if (segment.preferHTMLAudio || options.preferHTMLAudio || this.preferHTMLAudio) {
       this.renderAudioSegmentWithHTMLAudio(segment, options);
-    }
-    else {
+    } else {
       this.renderAudioSegmentWithWebAudio(segment, options);
     }
   }
 
   // helpful web audio documentation: http://www.html5rocks.com/en/tutorials/webaudio/intro/
-  renderAudioSegmentWithWebAudio(segment,  {offset=0}) {
+  renderAudioSegmentWithWebAudio (segment, { offset = 0 }) {
     var self = this;
 
     var Context = window.AudioContext || window.webkitAudioContext;
@@ -432,15 +425,14 @@ module.exports = class WebRenderer extends Renderer {
 
     var gainNode = audioContext.createGain();
     gainNode.connect(audioContext.destination);
-    segment.addChangeHandler('volume', function(volume) {
+    segment.addChangeHandler('volume', function (volume) {
       gainNode.gain.value = volume;
     });
 
     if (segment.fadeInDuration) {
       gainNode.gain.linearRampToValueAtTime(0, sourceStartTime);
       gainNode.gain.linearRampToValueAtTime(segment.volume, sourceStartTime + segment.fadeInDuration);
-    }
-    else {
+    } else {
       gainNode.gain.value = segment.volume;
     }
 
@@ -451,15 +443,15 @@ module.exports = class WebRenderer extends Renderer {
 
     source.start(sourceStartTime, segment.startTime, segment.getDuration());
 
-    var request = new XMLHttpRequest();
+    var request = new window.XMLHttpRequest();
     request.open('GET', this.videoSourceMaker(segment.filename), true);
     request.responseType = 'arraybuffer';
 
-    request.onload = function() {
+    request.onload = function () {
       var audioData = request.response;
 
       audioContext.decodeAudioData(audioData,
-        function(buffer) {
+        function (buffer) {
           source.buffer = buffer;
           source.connect(gainNode);
 
@@ -470,11 +462,11 @@ module.exports = class WebRenderer extends Renderer {
           }
 
           source.playbackRate.value = segment.playbackRate;
-          segment.addChangeHandler('playbackRate', function(playbackRate) {
+          segment.addChangeHandler('playbackRate', function (playbackRate) {
             source.playbackRate.value = playbackRate;
           });
         },
-        function(e) {
+        function (e) {
           if (self.log) {
             console.log(`audio decoding erorr: ${e.err}`);
           }
@@ -484,7 +476,7 @@ module.exports = class WebRenderer extends Renderer {
     request.send();
   }
 
-  renderAudioSegmentWithHTMLAudio(segment, {offset=0}) {
+  renderAudioSegmentWithHTMLAudio (segment, { offset = 0 }) {
     var self = this;
 
     var audio = document.createElement('audio');
@@ -492,14 +484,14 @@ module.exports = class WebRenderer extends Renderer {
     audio.src = this.videoSourceMaker(segment.filename);
     audio.currentTime = segment.startTime;
     audio.playbackRate = segment.playbackRate;
-    segment.addChangeHandler('playbackRate', function(playbackRate) { audio.playbackRate = playbackRate; });
+    segment.addChangeHandler('playbackRate', function (playbackRate) { audio.playbackRate = playbackRate; });
     audio.volume = segment.volume;
-    segment.addChangeHandler('volume', function(volume) { audio.volume = volume; });
+    segment.addChangeHandler('volume', function (volume) { audio.volume = volume; });
 
     var segmentDuration = segment.msDuration();
     var expectedStart = window.performance.now() + offset;
 
-    audio.addEventListener('playing', function() {
+    audio.addEventListener('playing', function () {
       var now = window.performance.now();
       var startDelay = now + self.startPerceptionCorrection - expectedStart;
 
@@ -517,7 +509,7 @@ module.exports = class WebRenderer extends Renderer {
 
     setTimeout(start, offset - this.startPerceptionCorrection);
 
-    function start() {
+    function start () {
       audio.play();
 
       var fadeInDuration = (1000 * segment.fadeInDuration) || self.audioFadeDuration;
@@ -532,7 +524,7 @@ module.exports = class WebRenderer extends Renderer {
 
       var fadeOutDuration = (1000 * segment.fadeOutDuration) || self.audioFadeDuration;
       if (fadeOutDuration) {
-        setTimeout(function() {
+        setTimeout(function () {
           new TWEEN.Tween(audio)
             .to({volume: 0}, fadeOutDuration)
             .start();
@@ -546,14 +538,13 @@ module.exports = class WebRenderer extends Renderer {
       segment.didStart();
     }
 
-    function end() {
+    function end () {
       if (segment.loop) {
         audio.pause();
         audio.currentTime = segment.startTime;
         audio.play();
         setTimeout(end, segmentDuration);
-      }
-      else {
+      } else {
         audio.src = '';
         segment.cleanup();
       }
@@ -562,22 +553,22 @@ module.exports = class WebRenderer extends Renderer {
 
   /// Rendering Helpers
 
-  setVisualSegmentOpacity(segment, el) {
+  setVisualSegmentOpacity (segment, el) {
     if (segment.opacity !== 1.0) {
       el.style.opacity = segment.opacity;
     }
-    segment.addChangeHandler('opacity', function(opacity) {
+    segment.addChangeHandler('opacity', function (opacity) {
       el.style.opacity = opacity;
     });
   }
 
-  getJSON(url, callback) {
+  getJSON (url, callback) {
     if (!callback) return;
 
-    var request = new XMLHttpRequest();
+    var request = new window.XMLHttpRequest();
     request.open('GET', url, true);
 
-    request.onload = function() {
+    request.onload = function () {
       var data = JSON.parse(request.responseText);
       callback(data);
     };
