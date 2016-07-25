@@ -10,10 +10,12 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var VisualSegment = require('./visual-segment');
+var Segment = require('./segment');
 
-module.exports = function (_VisualSegment) {
-  _inherits(ImageSegment, _VisualSegment);
+// Image Sequences baby
+/// Dynamic properties on web: opacity, z, rect, fps
+module.exports = function (_Segment) {
+  _inherits(ImageSegment, _Segment);
 
   function ImageSegment(options) {
     _classCallCheck(this, ImageSegment);
@@ -21,6 +23,13 @@ module.exports = function (_VisualSegment) {
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ImageSegment).call(this, options));
 
     _this.segmentType = 'image';
+    _this.images = options.images || [];
+    _this.fps = options.fps || 30;
+    _this.duration = _this.images.length / _this.fps;
+    _this.loop = options.loop !== undefined ? options.loop : false;
+    _this.rect = options.rect || { x: 0, y: 0, w: 1, h: 1 };
+    _this.z = options.z || 0;
+    _this.opacity = options.opacity || 1.0;
     return _this;
   }
 
@@ -28,6 +37,14 @@ module.exports = function (_VisualSegment) {
     key: 'copy',
     value: function copy(imageSegment) {
       _get(Object.getPrototypeOf(ImageSegment.prototype), 'copy', this).call(this, imageSegment);
+
+      this.images = imageSegment.images;
+      this.fps = imageSegment.fps;
+      this.duration = imageSegment.duration;
+      this.loop = imageSegment.loop;
+      this.rect = imageSegment.rect;
+      this.z = imageSegment.z;
+      this.opacity = imageSegment.opacity;
 
       return this;
     }
@@ -37,14 +54,92 @@ module.exports = function (_VisualSegment) {
       return new ImageSegment({}).copy(this);
     }
 
+    // Chaining Setters
+
+  }, {
+    key: 'setImages',
+    value: function setImages(images) {
+      this.images = images;
+      this.duration = this.frameCount() / this.fps;
+      return this;
+    }
+  }, {
+    key: 'setFPS',
+    value: function setFPS(fps) {
+      this.fps = fps;
+      this.duration = this.frameCount() / fps;
+      this.notifyChangeHandlers('fps', fps);
+      return this;
+    }
+  }, {
+    key: 'setDuration',
+    value: function setDuration(duration) {
+      this.duration = duration;
+      this.fps = this.frameCount() / duration;
+      this.notifyChangeHandlers('fps', this.fps);
+      return this;
+    }
+  }, {
+    key: 'setLoop',
+    value: function setLoop(loop) {
+      this.loop = loop;
+      return this;
+    }
+  }, {
+    key: 'setOpacity',
+    value: function setOpacity(opacity) {
+      this.opacity = opacity;
+      this.notifyChangeHandlers('opacity', opacity);
+      return this;
+    }
+  }, {
+    key: 'setRect',
+    value: function setRect(rect) {
+      this.rect = rect;
+      this.notifyChangeHandlers('rect', rect);
+      return this;
+    }
+  }, {
+    key: 'setZ',
+    value: function setZ(z) {
+      this.z = z;
+      this.notifyChangeHandlers('z', z);
+      return this;
+    }
+
     // Generators
 
   }, {
     key: 'simpleName',
     value: function simpleName() {
-      return 'image - ' + this.filename;
+      var filenames = this.images.slice(0, 3).map(function (i) {
+        return i.filename;
+      });
+      return 'image sequence - ' + filenames.join(',') + '...';
+    }
+  }, {
+    key: 'getDuration',
+    value: function getDuration() {
+      return this.duration;
+    }
+  }, {
+    key: 'frameCount',
+    value: function frameCount() {
+      return this.images.length;
+    }
+  }, {
+    key: 'getFilename',
+    value: function getFilename(idx) {
+      if (idx < 0 || idx >= this.images.length) return null;
+      return this.images[idx].filename;
+    }
+  }, {
+    key: 'msPerFrame',
+    value: function msPerFrame() {
+      var secondsPerFrame = this.fps / 1;
+      return secondsPerFrame * 1000;
     }
   }]);
 
   return ImageSegment;
-}(VisualSegment);
+}(Segment);

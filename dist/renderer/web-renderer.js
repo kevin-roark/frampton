@@ -471,6 +471,96 @@ module.exports = function (_Renderer) {
       }
     }
   }, {
+    key: 'renderImageSegment',
+    value: function renderImageSegment(segment, _ref4) {
+      var _ref4$offset = _ref4.offset;
+      var offset = _ref4$offset === undefined ? 0 : _ref4$offset;
+
+      var self = this;
+
+      var el = document.createElement('img');
+      el.className = 'frampton-image';
+
+      // style
+      styleZ(segment.z);segment.addChangeHandler('z', styleZ);
+      styleRect(segment.rect);segment.addChangeHandler('rect', styleRect);
+      self.setVisualSegmentOpacity(segment, el);
+
+      // hide until start
+      el.style.display = 'none';
+      this.domContainer.appendChild(el);
+
+      // start up baby
+      setTimeout(start, offset);
+
+      function styleZ(z) {
+        el.style.zIndex = z;
+      }
+
+      function styleRect(rect) {
+        el.style.left = rect.x * 100 + '%';
+        el.style.top = rect.y * 100 + '%';
+        el.style.width = rect.w * 100 + '%';
+        el.style.height = rect.h * 100 + '%';
+      }
+
+      function start() {
+        if (self.log) {
+          console.log(window.performance.now() + ': starting image segment - ' + segment.simpleName());
+        }
+
+        el.style.display = 'block';
+
+        segment.didStart();
+
+        var currentFrameIndex = 0;
+        var lastUpdateLeftoverTime = 0;
+        var msPerFrame = segment.msPerFrame();
+        segment.addChangeHandler('fps', function () {
+          msPerFrame = segment.msPerFrame();
+        });
+
+        updateImage(0);
+        var fnIdentifier = self.addUpdateFunction(updateImage);
+
+        function updateImage(timeDelta) {
+          var deltaWithLeftoverTime = timeDelta + lastUpdateLeftoverTime;
+
+          var frames = Math.floor(deltaWithLeftoverTime / msPerFrame);
+          currentFrameIndex += frames;
+
+          lastUpdateLeftoverTime = deltaWithLeftoverTime - frames * msPerFrame;
+
+          // end or restart if we reach end of the frames
+          if (currentFrameIndex >= segment.frameCount()) {
+            if (segment.loop) {
+              currentFrameIndex = currentFrameIndex - segment.frameCount();
+            } else {
+              end(fnIdentifier);
+              return;
+            }
+          }
+
+          el.src = this.videoSourceMaker(segment.getFilename(currentFrameIndex));
+
+          if (self.log) {
+            console.log(window.performance.now() + ': displaying frame ' + currentFrameIndex + ' for image segment - ' + segment.simpleName());
+          }
+        }
+      }
+
+      function end(fnIdentifier) {
+        el.parentNode.removeChild(el);
+        segment.cleanup();
+
+        self.removeUpdateFunctionWithIdentifier(fnIdentifier);
+
+        if (self.log) {
+          console.log(window.performance.now() + ': finished image segment - ' + segment.simpleName());
+        }
+      }
+    }
+  }, {
     key: 'renderAudioSegment',
     value: function renderAudioSegment(segment, options) {
       if (segment.preferHTMLAudio || options.preferHTMLAudio || this.preferHTMLAudio) {
@@ -484,9 +574,9 @@ module.exports = function (_Renderer) {
 
   }, {
     key: 'renderAudioSegmentWithWebAudio',
-    value: function renderAudioSegmentWithWebAudio(segment, _ref4) {
-      var _ref4$offset = _ref4.offset;
-      var offset = _ref4$offset === undefined ? 0 : _ref4$offset;
+    value: function renderAudioSegmentWithWebAudio(segment, _ref5) {
+      var _ref5$offset = _ref5.offset;
+      var offset = _ref5$offset === undefined ? 0 : _ref5$offset;
 
       var self = this;
 
@@ -515,7 +605,7 @@ module.exports = function (_Renderer) {
 
       source.start(sourceStartTime, segment.startTime, segment.getDuration());
 
-      var request = new XMLHttpRequest();
+      var request = new window.XMLHttpRequest();
       request.open('GET', this.videoSourceMaker(segment.filename), true);
       request.responseType = 'arraybuffer';
 
@@ -547,9 +637,9 @@ module.exports = function (_Renderer) {
     }
   }, {
     key: 'renderAudioSegmentWithHTMLAudio',
-    value: function renderAudioSegmentWithHTMLAudio(segment, _ref5) {
-      var _ref5$offset = _ref5.offset;
-      var offset = _ref5$offset === undefined ? 0 : _ref5$offset;
+    value: function renderAudioSegmentWithHTMLAudio(segment, _ref6) {
+      var _ref6$offset = _ref6.offset;
+      var offset = _ref6$offset === undefined ? 0 : _ref6$offset;
 
       var self = this;
 
@@ -642,7 +732,7 @@ module.exports = function (_Renderer) {
     value: function getJSON(url, callback) {
       if (!callback) return;
 
-      var request = new XMLHttpRequest();
+      var request = new window.XMLHttpRequest();
       request.open('GET', url, true);
 
       request.onload = function () {

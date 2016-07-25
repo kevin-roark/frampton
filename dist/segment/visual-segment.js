@@ -12,7 +12,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var MediaSegment = require('./media-segment');
 
-/// abstract superclass for Video, Color, Image
+/// abstract superclass for Video, Color
 /// Dynamic properties on web: opacity
 module.exports = function (_MediaSegment) {
   _inherits(VisualSegment, _MediaSegment);
