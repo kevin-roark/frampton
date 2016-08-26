@@ -25,6 +25,7 @@ module.exports = function (_WebRenderer) {
     var rendererProvider = options.rendererProvider;
     var sceneProvider = options.sceneProvider;
     var cameraProvider = options.cameraProvider;
+    var ambientLightProvider = options.ambientLightProvider;
 
 
     if (!rendererProvider) rendererProvider = function rendererProvider() {
@@ -45,8 +46,12 @@ module.exports = function (_WebRenderer) {
     _this.camera = cameraProvider();
     _this.scene.add(_this.camera);
 
-    _this.ambientLight = new THREE.AmbientLight(0x404040);
-    _this.scene.add(_this.ambientLight);
+    if (!ambientLightProvider) ambientLightProvider = function ambientLightProvider() {
+      return new THREE.AmbientLight(0x404040);
+    };
+
+    _this.ambientLight = ambientLightProvider();
+    if (_this.ambientLight) _this.scene.add(_this.ambientLight);
 
     _this.domContainer.appendChild(_this.renderer.domElement);
 

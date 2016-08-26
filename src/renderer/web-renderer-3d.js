@@ -7,7 +7,7 @@ module.exports = class WebRenderer3D extends WebRenderer {
   constructor(options) {
     super(options);
 
-    let { rendererProvider, sceneProvider, cameraProvider } = options;
+    let { rendererProvider, sceneProvider, cameraProvider, ambientLightProvider } = options;
 
     if (!rendererProvider) rendererProvider = () => {
       let renderer = new THREE.WebGLRenderer();
@@ -25,8 +25,12 @@ module.exports = class WebRenderer3D extends WebRenderer {
     this.camera = cameraProvider();
     this.scene.add(this.camera);
 
-    this.ambientLight = new THREE.AmbientLight(0x404040);
-    this.scene.add(this.ambientLight);
+    if (!ambientLightProvider) ambientLightProvider = () => {
+      return new THREE.AmbientLight(0x404040);
+    };
+
+    this.ambientLight = ambientLightProvider();
+    if (this.ambientLight) this.scene.add(this.ambientLight);
 
     this.domContainer.appendChild(this.renderer.domElement);
 
